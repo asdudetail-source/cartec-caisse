@@ -77,11 +77,28 @@ main {
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
+.options-vente {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+}
+
+.options-vente select, #search-bar {
+    width: 100%;
+    padding: 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+
+#search-bar {
+    margin-bottom: 1rem;
+}
+
 .product-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 0.8rem;
-    margin-top: 1rem;
 }
 
 .product-card {
@@ -187,3 +204,12 @@ button {
 .data-table th {
     background-color: #f0f0f5;
 }
+
+.rep-actions {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-export { background-color: #5856d6; color: white; flex: 1; }
+.btn-reset { background-color: #8e8e93; color: white; flex: 1; }
