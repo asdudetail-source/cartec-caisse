@@ -5,6 +5,7 @@ let stock = JSON.parse(localStorage.getItem('cartec_stock')) || [
 
 let cart = [];
 let salesHistory = JSON.parse(localStorage.getItem('cartec_history')) || [];
+let longPressTimer = null;
 
 function saveData() {
     localStorage.setItem('cartec_stock', JSON.stringify(stock));
@@ -43,14 +44,84 @@ function renderProducts() {
 
     filteredStock.forEach(prod => {
         const currentPrice = clientType === 'pro' ? prod.pricePro : prod.pricePart;
-        grid.innerHTML += `
-            <div class="product-card" onclick="addToCart(${prod.id})">
-                <h4>${prod.name}</h4>
-                <div class="price">${currentPrice.toFixed(2)} €</div>
-                <div class="stock">Stock : ${prod.stock}</div>
-            </div>
+        
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+            <h4>${prod.name}</h4>
+            <div class="price">${currentPrice.toFixed(2)} €</div>
+            <div class="stock">Stock : ${prod.stock}</div>
         `;
+
+        // Gestion du clic simple vs Appui long (Mobile & Desktop)
+        let isLongPress = false;
+
+        const startPress = () => {
+            isLongPress = false;
+            longPressTimer = setTimeout(() => {
+                isLongPress = true;
+                openEditModal(prod.id);
+            }, 600); // 600 ms pour l'appui long
+        };
+
+        const cancelPress = () => {
+            clearTimeout(longPressTimer);
+        };
+
+        card.addEventListener('touchstart', startPress, { passive: true });
+        card.addEventListener('touchend', (e) => {
+            cancelPress();
+            if (!isLongPress) {
+                addToCart(prod.id);
+            }
+        });
+        card.addEventListener('touchmove', cancelPress);
+
+        card.addEventListener('mousedown', startPress);
+        card.addEventListener('mouseup', (e) => {
+            cancelPress();
+            if (!isLongPress && e.button === 0) {
+                addToCart(prod.id);
+            }
+        });
+        card.addEventListener('mouseleave', cancelPress);
+
+        grid.appendChild(card);
     });
+}
+
+/* GESTION DE LA MODALE D'ÉDITION */
+function openEditModal(productId) {
+    const prod = stock.find(p => p.id === productId);
+    if (!prod) return;
+
+    document.getElementById('edit-id').value = prod.id;
+    document.getElementById('edit-name').value = prod.name;
+    document.getElementById('edit-stock').value = prod.stock;
+    document.getElementById('edit-price-pro').value = prod.pricePro;
+    document.getElementById('edit-price-part').value = prod.pricePart;
+
+    document.getElementById('modal-edit').style.display = 'flex';
+}
+
+function closeEditModal() {
+    document.getElementById('modal-edit').style.display = 'none';
+}
+
+function saveProductEdit() {
+    const id = parseInt(document.getElementById('edit-id').value);
+    const prod = stock.find(p => p.id === id);
+
+    if (prod) {
+        prod.name = document.getElementById('edit-name').value;
+        prod.stock = parseInt(document.getElementById('edit-stock').value) || 0;
+        prod.pricePro = parseFloat(document.getElementById('edit-price-pro').value) || 0;
+        prod.pricePart = parseFloat(document.getElementById('edit-price-part').value) || 0;
+
+        saveData();
+        renderAll();
+        closeEditModal();
+    }
 }
 
 function addToCart(productId) {
@@ -172,7 +243,10 @@ function renderStockTable() {
                 <td>${p.pricePart.toFixed(2)} €</td>
                 <td>${p.pricePro.toFixed(2)} €</td>
                 <td>${p.stock}</td>
-                <td><button class="btn-danger" style="padding: 0.4rem 0.8rem; width: auto; font-size: 0.9rem;" onclick="deleteProduct(${p.id})">Supprimer</button></td>
+                <td>
+                    <button class="btn-primary" style="padding: 0.4rem 0.8rem; width: auto; font-size: 0.85rem;" onclick="openEditModal(${p.id})">Modifier</button>
+                    <button class="btn-danger" style="padding: 0.4rem 0.8rem; width: auto; font-size: 0.85rem;" onclick="deleteProduct(${p.id})">Supprimer</button>
+                </td>
             </tr>
         `;
     });
