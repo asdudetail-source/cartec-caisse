@@ -6,40 +6,35 @@ document.addEventListener('DOMContentLoaded', function() {
     chargerDonnees();
     rafraichirTout();
 
-    // Soumission du formulaire d'ajout
     document.getElementById('form-produit').addEventListener('submit', function(e) {
         e.preventDefault();
         ajouterProduit();
     });
 
-    // Changement de tarif ou canal
     document.getElementById('select-client').addEventListener('change', rafraichirTout);
     document.getElementById('select-canal').addEventListener('change', rafraichirTout);
-    
-    // Recherche
     document.getElementById('search-bar').addEventListener('input', rafraichirTout);
 
-    // Boutons
     document.getElementById('btn-valider').addEventListener('click', validerVente);
     document.getElementById('btn-export').addEventListener('click', exporterStockEtVentes);
     document.getElementById('btn-reset').addEventListener('click', reinitialiserTout);
 });
 
 function chargerDonnees() {
-    const dataStock = localStorage.getItem('cartec_stock_v8');
+    const dataStock = localStorage.getItem('cartec_stock_v9');
     if (dataStock) {
         try { catalogue = JSON.parse(dataStock); } catch(e) { catalogue = []; }
     }
 
-    const dataVentes = localStorage.getItem('cartec_ventes_v8');
+    const dataVentes = localStorage.getItem('cartec_ventes_v9');
     if (dataVentes) {
         try { historiqueVentes = JSON.parse(dataVentes); } catch(e) { historiqueVentes = []; }
     }
 }
 
 function sauvegarderDonnees() {
-    localStorage.setItem('cartec_stock_v8', JSON.stringify(catalogue));
-    localStorage.setItem('cartec_ventes_v8', JSON.stringify(historiqueVentes));
+    localStorage.setItem('cartec_stock_v9', JSON.stringify(catalogue));
+    localStorage.setItem('cartec_ventes_v9', JSON.stringify(historiqueVentes));
 }
 
 function ajouterProduit() {
@@ -82,7 +77,7 @@ function afficherCatalogue(liste) {
     grid.innerHTML = '';
 
     if (liste.length === 0) {
-        grid.innerHTML = '<p style="grid-column: 1/-1; color: #8e8e93; text-align: center; padding: 20px;">Aucun article dans le catalogue.</p>';
+        grid.innerHTML = '<p style="grid-column: 1/-1; color: #6c757d; text-align: center; padding: 20px;">Aucun article dans le catalogue.</p>';
         return;
     }
 
@@ -90,7 +85,7 @@ function afficherCatalogue(liste) {
         const prix = obtenirPrixProduit(p);
         const card = document.createElement('div');
         card.className = 'product-card';
-        const couleurStock = p.stock <= 1 ? '#ff3b30' : '#8e8e93';
+        const couleurStock = p.stock <= 1 ? '#dc3545' : '#6c757d';
 
         card.innerHTML = `
             <span class="btn-suppr">&times;</span>
@@ -153,7 +148,7 @@ function validerVente() {
         return;
     }
 
-    const canalActuel = document.getElementById('select-canal').value; // 'facture' ou 'black'
+    const canalActuel = document.getElementById('select-canal').value;
     let totalVente = 0;
     const articlesVendus = [];
 
@@ -174,7 +169,6 @@ function validerVente() {
         });
     });
 
-    // Enregistrement avec timestamp et ID unique
     historiqueVentes.unshift({
         id: Date.now(),
         heure: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -194,7 +188,7 @@ function afficherHistoriqueVentes() {
     container.innerHTML = '';
 
     if (historiqueVentes.length === 0) {
-        container.innerHTML = '<p style="color: #8e8e93; font-size: 13px; text-align: center;">Aucune vente enregistrée.</p>';
+        container.innerHTML = '<p style="color: #6c757d; font-size: 13px; text-align: center;">Aucune vente enregistrée.</p>';
         return;
     }
 
@@ -214,7 +208,7 @@ function afficherHistoriqueVentes() {
                 <span><b>Vente #${historiqueVentes.length - index}</b> <small>(${v.heure})</small></span>
                 <span class="tag-canal ${canalClass}">${canalLabel}</span>
             </div>
-            <div style="margin-top: 4px; font-weight: 700; color: #34c759;">
+            <div style="margin-top: 4px; font-weight: 700; color: #198754;">
                 ${v.montant.toFixed(2)} €
             </div>
             <button class="btn-toggle-ticket" onclick="toggleDetailsTicket(${v.id})">Voir le ticket</button>
@@ -249,7 +243,6 @@ function exporterStockEtVentes() {
     let totalFacture = 0;
     let totalCash = 0;
 
-    // Regroupement des articles vendus par canal
     const cumulFacture = {};
     const cumulCash = {};
 
@@ -315,8 +308,8 @@ function exporterStockEtVentes() {
 
 function reinitialiserTout() {
     if (confirm('Voulez-vous vraiment TOUT réinitialiser (catalogue et historique des ventes) ?')) {
-        localStorage.removeItem('cartec_stock_v8');
-        localStorage.removeItem('cartec_ventes_v8');
+        localStorage.removeItem('cartec_stock_v9');
+        localStorage.removeItem('cartec_ventes_v9');
         catalogue = [];
         historiqueVentes = [];
         ticket = [];
