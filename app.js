@@ -1,4 +1,4 @@
-let catalogue = JSON.parse(localStorage.getItem('cartec_stock_v4')) || [];
+let catalogue = JSON.parse(localStorage.getItem('cartec_stock_v5')) || [];
 let ticket = [];
 
 window.onload = function() {
@@ -10,7 +10,6 @@ function ajouterProduitManuel(event) {
     
     const nom = document.getElementById('add-nom').value.trim();
     const stock = parseInt(document.getElementById('add-stock').value) || 0;
-    const prixBlack = parseFloat(document.getElementById('add-black').value) || 0;
     const prixPro = parseFloat(document.getElementById('add-pro').value) || 0;
     const prixParticulier = parseFloat(document.getElementById('add-part').value) || 0;
 
@@ -18,7 +17,6 @@ function ajouterProduitManuel(event) {
         id: Date.now().toString(),
         nom: nom,
         stock: stock,
-        prix_black: prixBlack,
         prix_pro: prixPro,
         prix_particulier: prixParticulier
     };
@@ -30,7 +28,7 @@ function ajouterProduitManuel(event) {
 }
 
 function sauvegarderStock() {
-    localStorage.setItem('cartec_stock_v4', JSON.stringify(catalogue));
+    localStorage.setItem('cartec_stock_v5', JSON.stringify(catalogue));
 }
 
 function supprimerProduit(id, event) {
@@ -44,13 +42,7 @@ function supprimerProduit(id, event) {
 
 function calculerPrix(p) {
     const client = document.getElementById('select-client').value;
-    const canal = document.getElementById('select-canal').value;
-
-    // Priorité au tarif Black si sélectionné
-    if (canal === 'black') {
-        return p.prix_black;
-    }
-    // Sinon tarif Pro ou Particulier selon le client
+    // Le canal (Facturé / Black) ne modifie pas le prix, seul le type de client compte
     return client === 'pro' ? p.prix_pro : p.prix_particulier;
 }
 
@@ -59,7 +51,7 @@ function afficherProduits(liste) {
     grid.innerHTML = '';
 
     if (liste.length === 0) {
-        grid.innerHTML = '<p style="grid-column: 1/-1; color: #8e8e93; text-align: center; padding: 30px;">Le catalogue est totalement vide.<br>Ajoutez vos articles à gauche.</p>';
+        grid.innerHTML = '<p style="grid-column: 1/-1; color: #8e8e93; text-align: center; padding: 30px;">Le catalogue est vide.<br>Ajoutez vos articles à gauche.</p>';
         return;
     }
 
