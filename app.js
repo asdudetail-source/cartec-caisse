@@ -1,218 +1,285 @@
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+let stock = JSON.parse(localStorage.getItem('cartec_stock')) || [
+    { id: 1, name: "Nettoyant Jantes Cartec", pricePart: 18.00, pricePro: 12.00, stock: 10 },
+    { id: 2, name: "Shampoing Carosserie", pricePart: 15.00, pricePro: 10.00, stock: 15 }
+];
+
+let cart = [];
+let salesHistory = JSON.parse(localStorage.getItem('cartec_history')) || [];
+let editingProductId = null;
+
+function saveData() {
+    localStorage.setItem('cartec_stock', JSON.stringify(stock));
+    localStorage.setItem('cartec_history', JSON.stringify(salesHistory));
 }
 
-body {
-    background-color: #f2f2f7;
-    color: #1c1c1e;
-    padding-bottom: 20px;
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+    
+    document.getElementById('section-' + tabName).classList.add('active');
+    document.getElementById('tab-' + tabName).classList.add('active');
+    
+    renderAll();
 }
 
-header {
-    background-color: #1c1c1e;
-    color: #ffffff;
-    padding: 1rem;
-    text-align: center;
-}
-
-header h1 {
-    font-size: 1.4rem;
-    margin-bottom: 0.8rem;
-}
-
-nav {
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-nav button {
-    background-color: #2c2c2e;
-    color: #8e8e93;
-    border: none;
-    padding: 0.6rem 1rem;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-nav button.active {
-    background-color: #007aff;
-    color: #ffffff;
-}
-
-main {
-    max-width: 1200px;
-    margin: 1.5rem auto;
-    padding: 0 1rem;
-}
-
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
+function renderAll() {
+    renderProducts();
+    renderCart();
+    renderStockTable();
+    renderHistoryTable();
 }
 
 /* CAISSE */
-.caisse-container {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 1.5rem;
+function renderProducts() {
+    const grid = document.getElementById('product-grid');
+    const clientType = document.getElementById('select-client').value;
+    const searchQuery = document.getElementById('search-bar').value.toLowerCase();
+    grid.innerHTML = '';
+
+    const filteredStock = stock.filter(p => p.name.toLowerCase().includes(searchQuery));
+
+    if (filteredStock.length === 0) {
+        grid.innerHTML = '<p style="grid-column: 1/-1; color: #8e8e93; font-style: italic;">Aucun produit trouvé.</p>';
+        return;
+    }
+
+    filteredStock.forEach(prod => {
+        const currentPrice = clientType === 'pro' ? prod.pricePro : prod.pricePart;
+        
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.onclick = () => addToCart(prod.id);
+        card.innerHTML = `
+            <h4>${prod.name}</h4>
+            <div class="price">${currentPrice.toFixed(2)} €</div>
+            <div class="stock">Stock : ${prod.stock}</div>
+        `;
+        grid.appendChild(card);
+    });
 }
 
-@media (max-width: 768px) {
-    .caisse-container {
-        grid-template-columns: 1fr;
+function addToCart(productId) {
+    const product = stock.find(p => p.id === productId);
+    const clientType = document.getElementById('select-client').value;
+
+    if (!product || product.stock <= 0) {
+        alert("Produit en rupture de stock !");
+        return;
+    }
+
+    const priceToApply = clientType === 'pro' ? product.pricePro : product.pricePart;
+    const cartItem = cart.find(item => item.id === productId);
+
+    if (cartItem) {
+        if (cartItem.qty < product.stock) {
+            cartItem.qty++;
+        } else {
+            alert("Stock maximum atteint pour cet article !");
+        }
+    } else {
+        cart.push({ id: product.id, name: product.name, price: priceToApply, qty: 1 });
+    }
+    renderCart();
+}
+
+function renderCart() {
+    const cartList = document.getElementById('cart-list');
+    const totalEl = document.getElementById('cart-total');
+    cartList.innerHTML = '';
+    
+    let total = 0;
+    cart.forEach(item => {
+        const itemTotal = item.price * item.qty;
+        total += itemTotal;
+        cartList.innerHTML += `
+            <li class="cart-item">
+                <span>${item.name} (x${item.qty})</span>
+                <span>${itemTotal.toFixed(2)} €</span>
+            </li>
+        `;
+    });
+    
+    totalEl.innerText = total.toFixed(2) + ' €';
+}
+
+function clearCart() {
+    cart = [];
+    renderCart();
+}
+
+function checkout() {
+    if (cart.length === 0) {
+        alert("Le panier est vide.");
+        return;
+    }
+
+    const clientType = document.getElementById('select-client').value === 'pro' ? 'Professionnel' : 'Particulier';
+    const canalType = document.getElementById('select-canal').value === 'facture' ? 'Facturé' : 'Cash / Black';
+
+    cart.forEach(item => {
+        const prod = stock.find(p => p.id === item.id);
+        if (prod) {
+            prod.stock -= item.qty;
+        }
+    });
+
+    const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const saleRecord = {
+        date: new Date().toLocaleString('fr-FR'),
+        canal: canalType,
+        tarif: clientType,
+        items: cart.map(i => `${i.name} (x${i.qty})`).join(', '),
+        total: total.toFixed(2)
+    };
+
+    salesHistory.unshift(saleRecord);
+    saveData();
+    clearCart();
+    renderAll();
+    alert("Vente enregistrée avec succès !");
+}
+
+/* GESTION DU STOCK */
+function renderStockTable() {
+    const body = document.getElementById('stock-table-body');
+    const searchInput = document.getElementById('search-stock-bar');
+    const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
+    
+    body.innerHTML = '';
+
+    const filteredStock = stock.filter(p => p.name.toLowerCase().includes(searchQuery));
+
+    if (filteredStock.length === 0) {
+        body.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #8e8e93; padding: 1.2rem;">Aucun produit trouvé</td></tr>`;
+        return;
+    }
+
+    filteredStock.forEach(p => {
+        body.innerHTML += `
+            <tr>
+                <td><strong>${p.name}</strong></td>
+                <td>${p.pricePart.toFixed(2)} €</td>
+                <td>${p.pricePro.toFixed(2)} €</td>
+                <td>${p.stock}</td>
+                <td>
+                    <button class="btn-edit" onclick="editProduct(${p.id})">Modifier</button>
+                    <button class="btn-danger" onclick="deleteProduct(${p.id})">Supprimer</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function editProduct(id) {
+    const prod = stock.find(p => p.id === id);
+    if (!prod) return;
+
+    document.getElementById('prod-name').value = prod.name;
+    document.getElementById('prod-stock').value = prod.stock;
+    document.getElementById('prod-price-pro').value = prod.pricePro;
+    document.getElementById('prod-price-part').value = prod.pricePart;
+
+    editingProductId = id;
+
+    document.getElementById('form-title').innerText = "✏️ Modifier l'article";
+    
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.innerText = "Mettre à jour l'article";
+    submitBtn.style.backgroundColor = "#ff9500";
+
+    document.getElementById('cancel-edit-btn').style.display = "inline-block";
+    document.getElementById('add-product-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+function cancelEdit() {
+    editingProductId = null;
+    document.getElementById('add-product-form').reset();
+    document.getElementById('form-title').innerText = "+ Ajouter un produit";
+    
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.innerText = "Enregistrer produit";
+    submitBtn.style.backgroundColor = "";
+
+    document.getElementById('cancel-edit-btn').style.display = "none";
+}
+
+function handleAddProduct(e) {
+    e.preventDefault();
+
+    const name = document.getElementById('prod-name').value;
+    const stockQty = parseInt(document.getElementById('prod-stock').value);
+    const pricePro = parseFloat(document.getElementById('prod-price-pro').value);
+    const pricePart = parseFloat(document.getElementById('prod-price-part').value);
+
+    if (editingProductId !== null) {
+        const prod = stock.find(p => p.id === editingProductId);
+        if (prod) {
+            prod.name = name;
+            prod.stock = stockQty;
+            prod.pricePro = pricePro;
+            prod.pricePart = pricePart;
+        }
+        cancelEdit();
+    } else {
+        const existingProduct = stock.find(p => p.name.toLowerCase() === name.toLowerCase());
+        if (existingProduct) {
+            existingProduct.stock += stockQty;
+            existingProduct.pricePro = pricePro;
+            existingProduct.pricePart = pricePart;
+        } else {
+            stock.push({ id: Date.now(), name, pricePro, pricePart, stock: stockQty });
+        }
+        e.target.reset();
+    }
+
+    saveData();
+    renderAll();
+}
+
+function deleteProduct(id) {
+    if (confirm("Voulez-vous vraiment supprimer cet article ?")) {
+        stock = stock.filter(p => p.id !== id);
+        saveData();
+        renderAll();
     }
 }
 
-.catalog-panel, .cart-panel {
-    background: #ffffff;
-    padding: 1.2rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+/* HISTORIQUE ET BILAN */
+function renderHistoryTable() {
+    const body = document.getElementById('history-table-body');
+    body.innerHTML = '';
+    salesHistory.forEach(s => {
+        body.innerHTML += `
+            <tr>
+                <td>${s.date}</td>
+                <td><strong>${s.canal}</strong></td>
+                <td>${s.tarif}</td>
+                <td>${s.items}</td>
+                <td><strong>${s.total} €</strong></td>
+            </tr>
+        `;
+    });
 }
 
-.options-vente {
-    display: flex;
-    gap: 0.5rem;
-    margin: 1rem 0;
+function exportData() {
+    const dataStr = "BILAN CAISSE CARTEC\n\n--- INVENTAIRE STOCK ---\n" + 
+        stock.map(s => `${s.name} - Stock: ${s.stock} (Part: ${s.pricePart}€ / Pro: ${s.pricePro}€)`).join("\n") +
+        "\n\n--- HISTORIQUE VENTES ---\n" +
+        salesHistory.map(h => `[${h.date}] (${h.canal} - ${h.tarif}) : ${h.items} = ${h.total}€`).join("\n");
+
+    navigator.clipboard.writeText(dataStr);
+    alert("Bilan copié dans le presse-papier !");
 }
 
-.options-vente select, #search-bar, #search-stock-bar {
-    width: 100%;
-    padding: 0.7rem;
-    border: 1px solid #d1d1d6;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    margin-bottom: 0.8rem;
+function resetAll() {
+    if (confirm("Voulez-vous vraiment TOUT réinitialiser (catalogue et ventes) ?")) {
+        stock = [];
+        salesHistory = [];
+        saveData();
+        renderAll();
+    }
 }
 
-.product-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 0.8rem;
-}
-
-.product-card {
-    background-color: #f2f2f7;
-    border: 1px solid #e5e5ea;
-    border-radius: 10px;
-    padding: 0.8rem;
-    text-align: center;
-    cursor: pointer;
-    user-select: none;
-}
-
-.product-card:active {
-    background-color: #e5e5ea;
-}
-
-.product-card h4 {
-    font-size: 0.95rem;
-    margin-bottom: 0.4rem;
-}
-
-.product-card .price {
-    font-weight: bold;
-    color: #007aff;
-    font-size: 1.1rem;
-}
-
-.product-card .stock {
-    font-size: 0.75rem;
-    color: #8e8e93;
-    margin-top: 0.2rem;
-}
-
-/* PANIER */
-.cart-list {
-    list-style: none;
-    margin: 1rem 0;
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.cart-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.6rem 0;
-    border-bottom: 1px solid #e5e5ea;
-}
-
-.total-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-}
-
-/* BOUTONS ET FORMULAIRES */
-.btn-primary, .btn-danger, .btn-success, .btn-secondary, .btn-edit, .btn-export, .btn-reset {
-    border: none;
-    border-radius: 8px;
-    padding: 0.7rem 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    width: 100%;
-    margin-bottom: 0.5rem;
-}
-
-.btn-primary { background-color: #007aff; color: white; }
-.btn-danger { background-color: #ff3b30; color: white; width: auto; }
-.btn-success { background-color: #34c759; color: white; width: auto; }
-.btn-secondary { background-color: #8e8e93; color: white; width: auto; }
-.btn-edit { background-color: #007aff; color: white; width: auto; padding: 0.4rem 0.8rem; font-size: 0.85rem; margin-right: 4px; }
-.btn-export { background-color: #5856d6; color: white; margin-top: 1rem; }
-.btn-reset { background-color: #ff9500; color: white; }
-
-/* TABLEAUX DE GESTION & HISTORIQUE */
-#add-product-form {
-    background: white;
-    padding: 1.2rem;
-    border-radius: 12px;
-    margin-bottom: 1.5rem;
-}
-
-.form-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.8rem;
-}
-
-.form-group input {
-    flex: 1;
-    min-width: 140px;
-    padding: 0.7rem;
-    border: 1px solid #d1d1d6;
-    border-radius: 8px;
-}
-
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.data-table th, .data-table td {
-    padding: 0.8rem;
-    text-align: left;
-    border-bottom: 1px solid #e5e5ea;
-}
-
-.data-table th {
-    background-color: #f2f2f7;
-    color: #8e8e93;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-}
+document.addEventListener('DOMContentLoaded', () => {
+    renderAll();
+});
