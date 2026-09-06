@@ -273,12 +273,36 @@ function renderHistoryTable() {
 }
 
 function exportData() {
-    const dataStr = "BILAN CAISSE CARTEC\n\n--- INVENTAIRE STOCK ---\n" + 
-        stock.map(s => `${s.name} - Stock: ${s.stock} (Part: ${s.pricePart}€ / Pro: ${s.pricePro}€)`).join("\n") +
-        "\n\n--- HISTORIQUE VENTES ---\n" +
-        salesHistory.map(h => `[${h.date}] (${h.canal} - ${h.tarif}) : ${h.items} = ${h.total}€`).join("\n");
+    let blackSales = salesHistory.filter(s => s.canal.includes('Cash') || s.canal.includes('Black'));
+    let factSales = salesHistory.filter(s => s.canal.includes('Facturé') || s.canal.includes('Facture'));
 
-    navigator.clipboard.writeText(dataStr);
+    let totalBlack = blackSales.reduce((sum, s) => sum + parseFloat(s.total), 0);
+    let totalFact = factSales.reduce((sum, s) => sum + parseFloat(s.total), 0);
+    let totalGeneral = totalBlack + totalFact;
+
+    let textBlack = blackSales.length === 0 ? "- Aucune vente" : blackSales.map(s => `- ${s.items} (${s.total} €)`).join("\n");
+    let textFact = factSales.length === 0 ? "- Aucune vente" : factSales.map(s => `- ${s.items} (${s.total} €)`).join("\n");
+
+    let textStock = stock.length === 0 
+        ? "(Catalogue vide)" 
+        : stock.map(s => `- ${s.name} : ${s.stock} restant(s)`).join("\n");
+
+    const reportStr = `📊 BILAN DE STOCK & VENTES :
+
+🔴 VENTES CASH / BLACK :
+${textBlack}
+👉 Total Cash : ${totalBlack.toFixed(2)} €
+
+🔵 VENTES FACTURÉES :
+${textFact}
+👉 Total Facturé : ${totalFact.toFixed(2)} €
+
+💰 TOTAL GÉNÉRAL ENCAISSÉ : ${totalGeneral.toFixed(2)} €
+
+📦 STOCK RESTANT EN CATALOGUE :
+${textStock}`;
+
+    navigator.clipboard.writeText(reportStr);
     alert("Bilan copié dans le presse-papier !");
 }
 
