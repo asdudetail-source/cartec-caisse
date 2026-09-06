@@ -5,63 +5,110 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Caisse & Stock Cartec</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="app-container">
-        <!-- Section 1 : Ajout de produit -->
-        <section class="card-section">
-            <h2>+ Nouveau Produit</h2>
-            <form id="form-produit">
-                <input type="text" id="add-nom" placeholder="Nom du produit" required>
-                <input type="number" id="add-stock" placeholder="Stock dispo" min="0" required>
-                <input type="number" step="0.01" id="add-pro" placeholder="Prix pro (€)" required>
-                <input type="number" step="0.01" id="add-part" placeholder="Prix particulier (€)" required>
-                <button type="submit" class="btn-ajouter">Ajouter au catalogue</button>
-            </form>
-        </section>
+        
+        <!-- Section Catalogue -->
+        <section class="card-section section-catalogue">
+            <div class="header-catalogue">
+                <div>
+                    <h2>Catalogue</h2>
+                    <span class="subtitle">Sélectionnez ou restez appuyé pour gérer</span>
+                </div>
+                <button id="btn-ouvrir-modal" class="btn-primary">
+                    <i class="fa-solid fa-plus"></i> Nouveau Produit
+                </button>
+            </div>
 
-        <!-- Section 2 : Catalogue des produits -->
-        <section class="card-section">
-            <h2>Catalogue</h2>
-            <input type="text" id="search-bar" placeholder="Rechercher un article...">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="search-bar" placeholder="Rechercher un article...">
+            </div>
             
             <div class="options-vente">
-                <select id="select-client">
-                    <option value="particulier">Tarif Particulier</option>
-                    <option value="pro">Tarif Professionnel</option>
-                </select>
-                <select id="select-canal">
-                    <option value="facture">Canal Facturé</option>
-                    <option value="black">Canal Cash / Black</option>
-                </select>
+                <div class="select-wrapper">
+                    <i class="fa-solid fa-user-tag"></i>
+                    <select id="select-client">
+                        <option value="particulier">Tarif Particulier</option>
+                        <option value="pro">Tarif Professionnel</option>
+                    </select>
+                </div>
+                <div class="select-wrapper">
+                    <i class="fa-solid fa-receipt"></i>
+                    <select id="select-canal">
+                        <option value="facture">Canal Facturé</option>
+                        <option value="black">Canal Cash / Black</option>
+                    </select>
+                </div>
             </div>
 
             <div id="produits-grid" class="grid"></div>
         </section>
 
-        <!-- Section 3 : Ticket de caisse & Historique -->
-        <section class="card-section">
-            <h2>Ticket en cours</h2>
+        <!-- Section Ticket de caisse & Actions -->
+        <section class="card-section section-ticket">
+            <h2><i class="fa-solid fa-cart-shopping"></i> Ticket en cours</h2>
             <div id="ticket-items" class="ticket-list"></div>
             
             <div class="total-box">
-                <small>TOTAL TICKET</small>
+                <small>TOTAL À PAYER</small>
                 <h1 id="total-amount">0.00 €</h1>
             </div>
 
-            <button id="btn-valider" class="btn-valider">Valider la vente</button>
+            <button id="btn-valider" class="btn-success btn-large">
+                <i class="fa-solid fa-check-circle"></i> Valider la vente
+            </button>
 
             <hr class="separator">
 
-            <h2>Dernières Ventes</h2>
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> Dernières Ventes</h2>
             <div id="historique-ventes" class="ventes-list"></div>
 
             <hr class="separator">
 
-            <h2>Espace Représentant</h2>
-            <button id="btn-export" class="btn-export">Copier le bilan (Stock & Ventes)</button>
-            <button id="btn-reset" class="btn-reset">Vider catalogue et ventes</button>
+            <h2><i class="fa-solid fa-chart-pie"></i> Espace Représentant</h2>
+            <button id="btn-export" class="btn-secondary">
+                <i class="fa-solid fa-copy"></i> Copier le bilan (Stock & Ventes)
+            </button>
+            <button id="btn-reset" class="btn-danger-outline">
+                <i class="fa-solid fa-trash-can"></i> Vider catalogue et ventes
+            </button>
         </section>
+    </div>
+
+    <!-- MODAL / POP-UP POUR AJOUTER UN PRODUIT -->
+    <div id="modal-produit" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Ajouter une fiche produit</h3>
+                <span id="btn-fermer-modal" class="close-modal">&times;</span>
+            </div>
+            <form id="form-produit">
+                <div class="form-group">
+                    <label>Nom de l'article</label>
+                    <input type="text" id="add-nom" placeholder="ex: Nettoyant Jantes 500ml" required>
+                </div>
+                <div class="form-group">
+                    <label>Stock initial</label>
+                    <input type="number" id="add-stock" placeholder="0" min="0" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Prix Pro (€)</label>
+                        <input type="number" step="0.01" id="add-pro" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Prix Particulier (€)</label>
+                        <input type="number" step="0.01" id="add-part" placeholder="0.00" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary btn-full">
+                    <i class="fa-solid fa-floppy-disk"></i> Enregistrer l'article
+                </button>
+            </form>
+        </div>
     </div>
 
     <script src="app.js"></script>
