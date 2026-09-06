@@ -4,7 +4,7 @@ body { margin: 0; padding: 20px; background: #f2f2f7; color: #1c1c1e; }
 .app-container { display: flex; gap: 20px; max-width: 1280px; margin: 0 auto; flex-wrap: wrap; }
 .card-section { background: #ffffff; padding: 24px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); flex: 1; min-width: 320px; }
 
-h2 { margin-top: 0; margin-bottom: 16px; font-size: 20px; font-weight: 700; color: #1c1c1e; }
+h2 { margin-top: 0; margin-bottom: 16px; font-size: 18px; font-weight: 700; color: #1c1c1e; }
 
 input, select { width: 100%; padding: 12px 14px; margin-bottom: 12px; border: 1px solid #e5e5ea; border-radius: 10px; background: #f9f9fb; font-size: 15px; outline: none; transition: border 0.2s; }
 input:focus, select:focus { border-color: #007aff; background: #fff; }
@@ -23,14 +23,15 @@ input:focus, select:focus { border-color: #007aff; background: #fff; }
 .product-stock { font-size: 12px; color: #8e8e93; display: block; margin-bottom: 8px; }
 .product-price { font-size: 16px; font-weight: 700; color: #007aff; }
 
-.ticket-list { min-height: 180px; max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
+.ticket-list { min-height: 120px; max-height: 220px; overflow-y: auto; margin-bottom: 15px; }
 .ticket-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f2f2f7; font-size: 15px; }
 
-.total-box { background: #1c1c1e; color: #ffffff; padding: 20px; border-radius: 12px; text-align: center; margin-top: 10px; }
-.total-box small { font-size: 12px; letter-spacing: 1px; color: #8e8e93; }
-.total-box h1 { margin: 4px 0 0 0; font-size: 34px; color: #30d158; }
+.total-box { background: #1c1c1e; color: #ffffff; padding: 16px; border-radius: 12px; text-align: center; margin-top: 10px; }
+.total-box small { font-size: 11px; letter-spacing: 1px; color: #8e8e93; }
+.total-box h1 { margin: 4px 0 0 0; font-size: 30px; color: #30d158; }
 
 button { width: 100%; padding: 14px; margin-top: 10px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
 .btn-ajouter { background: #34c759; color: #ffffff; }
 .btn-valider { background: #007aff; color: #ffffff; font-size: 16px; }
-.btn-reset { background: transparent; color: #ff3b30; border: 1px solid #ff3b30; margin-top: 15px; }
+.btn-export { background: #5856d6; color: #ffffff; }
+.btn-reset { background: transparent; color: #ff3b30; border: 1px solid #ff3b30; margin-top: 10px; }
