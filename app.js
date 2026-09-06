@@ -1,4 +1,4 @@
-letlet catalogue = [];
+let catalogue = [];
 let ticket = [];
 let historiqueVentes = [];
 
@@ -6,9 +6,15 @@ document.addEventListener('DOMContentLoaded', function() {
     chargerDonnees();
     rafraichirTout();
 
+    // Gestion du Modal
+    const modal = document.getElementById('modal-produit');
+    document.getElementById('btn-ouvrir-modal').addEventListener('click', () => modal.classList.add('active'));
+    document.getElementById('btn-fermer-modal').addEventListener('click', () => modal.classList.remove('active'));
+
     document.getElementById('form-produit').addEventListener('submit', function(e) {
         e.preventDefault();
         ajouterProduit();
+        modal.classList.remove('active');
     });
 
     document.getElementById('select-client').addEventListener('change', rafraichirTout);
@@ -21,20 +27,20 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function chargerDonnees() {
-    const dataStock = localStorage.getItem('cartec_stock_v10');
+    const dataStock = localStorage.getItem('cartec_stock_v11');
     if (dataStock) {
         try { catalogue = JSON.parse(dataStock); } catch(e) { catalogue = []; }
     }
 
-    const dataVentes = localStorage.getItem('cartec_ventes_v10');
+    const dataVentes = localStorage.getItem('cartec_ventes_v11');
     if (dataVentes) {
         try { historiqueVentes = JSON.parse(dataVentes); } catch(e) { historiqueVentes = []; }
     }
 }
 
 function sauvegarderDonnees() {
-    localStorage.setItem('cartec_stock_v10', JSON.stringify(catalogue));
-    localStorage.setItem('cartec_ventes_v10', JSON.stringify(historiqueVentes));
+    localStorage.setItem('cartec_stock_v11', JSON.stringify(catalogue));
+    localStorage.setItem('cartec_ventes_v11', JSON.stringify(historiqueVentes));
 }
 
 function ajouterProduit() {
@@ -58,15 +64,6 @@ function ajouterProduit() {
     document.getElementById('form-produit').reset();
 }
 
-function supprimerProduit(id, event) {
-    event.stopPropagation();
-    if (confirm('Supprimer cet article du catalogue ?')) {
-        catalogue = catalogue.filter(p => p.id !== id);
-        sauvegarderDonnees();
-        rafraichirTout();
-    }
-}
-
 function obtenirPrixProduit(p) {
     const typeClient = document.getElementById('select-client').value;
     return typeClient === 'pro' ? p.prix_pro : p.prix_particulier;
@@ -77,7 +74,7 @@ function afficherCatalogue(liste) {
     grid.innerHTML = '';
 
     if (liste.length === 0) {
-        grid.innerHTML = '<p style="grid-column: 1/-1; color: #6c757d; text-align: center; padding: 20px;">Aucun article dans le catalogue.</p>';
+        grid.innerHTML = '<p style="grid-column: 1/-1; color: var(--text-secondary); text-align: center; padding: 20px;">Aucun article disponible.</p>';
         return;
     }
 
@@ -85,33 +82,83 @@ function afficherCatalogue(liste) {
         const prix = obtenirPrixProduit(p);
         const card = document.createElement('div');
         card.className = 'product-card';
-        const couleurStock = p.stock <= 1 ? '#dc3545' : '#6c757d';
+
+        // Badge Stock Couleur Dynamique
+        let badgeClass = 'stock-high';
+        if (p.stock === 0) badgeClass = 'stock-out';
+        else if (p.stock <= 3) badgeClass = 'stock-low';
 
         card.innerHTML = `
-            <span class="btn-suppr">&times;</span>
-            <span class="product-title">${p.nom}</span>
-            <span class="product-stock" style="color: ${couleurStock}">Stock: ${p.stock}</span>
+            <div>
+                <span class="product-title">${p.nom}</span>
+                <span class="product-badge-stock ${badgeClass}">Stock: ${p.stock}</span>
+            </div>
             <div class="product-price">${prix.toFixed(2)} €</div>
         `;
 
-        card.querySelector('.btn-suppr').addEventListener('click', (e) => supprimerProduit(p.id, e));
-        card.addEventListener('click', () => ajouterAuTicket(p));
+        // Appui long & Clics
+        let timerAppuiLong = null;
+        let estAppuiLong = false;
+
+        const demarrerAppuiLong = () => {
+            estAppuiLong = false;
+            timerAppuiLong = setTimeout(() => {
+                estAppuiLong = true;
+                ouvrirMenuOptionProduit(p);
+            }, 500);
+        };
+
+        const annulerAppuiLong = () => clearTimeout(timerAppuiLong);
+
+        card.addEventListener('touchstart', demarrerAppuiLong, { passive: true });
+        card.addEventListener('touchend', () => {
+            annulerAppuiLong();
+            if (!estAppuiLong) ajouterAuTicket(p);
+        });
+
+        card.addEventListener('mousedown', demarrerAppuiLong);
+        card.addEventListener('mouseup', annulerAppuiLong);
+        card.addEventListener('click', (e) => {
+            if (!estAppuiLong && e.pointerType === 'mouse') ajouterAuTicket(p);
+        });
 
         grid.appendChild(card);
     });
 }
 
+function ouvrirMenuOptionProduit(produit) {
+    const choix = confirm(`Gestion de "${produit.nom}" :\n\n- [OK] pour MODIFIER LE STOCK\n- [Annuler] pour SUPPRIMER L'ARTICLE`);
+    
+    if (choix) {
+        const nouveauStock = prompt(`Ajuster le stock pour "${produit.nom}" :`, produit.stock);
+        if (nouveauStock !== null) {
+            const stockInt = parseInt(nouveauStock);
+            if (!isNaN(stockInt) && stockInt >= 0) {
+                produit.stock = stockInt;
+                sauvegarderDonnees();
+                rafraichirTout();
+            }
+        }
+    } else {
+        if (confirm(`Confirmer la SUPPRESSION définitive de "${produit.nom}" ?`)) {
+            catalogue = catalogue.filter(p => p.id !== produit.id);
+            sauvegarderDonnees();
+            rafraichirTout();
+        }
+    }
+}
+
 function ajouterAuTicket(produit) {
     const prodCatalogue = catalogue.find(p => p.id === produit.id);
     if (!prodCatalogue || prodCatalogue.stock <= 0) {
-        alert("Stock épuisé !");
+        alert("Cet article est en rupture de stock.");
         return;
     }
 
     const existant = ticket.find(item => item.produit.id === produit.id);
     if (existant) {
         if (existant.quantite >= prodCatalogue.stock) {
-            alert("Stock insuffisant.");
+            alert("Stock maximum atteint dans le ticket.");
             return;
         }
         existant.quantite++;
@@ -154,19 +201,12 @@ function validerVente() {
 
     ticket.forEach(item => {
         const prod = catalogue.find(p => p.id === item.produit.id);
-        if (prod) {
-            prod.stock = Math.max(0, prod.stock - item.quantite);
-        }
+        if (prod) prod.stock = Math.max(0, prod.stock - item.quantite);
         const prixU = obtenirPrixProduit(item.produit);
         const sousTotal = prixU * item.quantite;
         totalVente += sousTotal;
 
-        articlesVendus.push({
-            nom: item.produit.nom,
-            qte: item.quantite,
-            prixU: prixU,
-            total: sousTotal
-        });
+        articlesVendus.push({ nom: item.produit.nom, qte: item.quantite, prixU: prixU, total: sousTotal });
     });
 
     historiqueVentes.unshift({
@@ -180,7 +220,6 @@ function validerVente() {
     sauvegarderDonnees();
     ticket = [];
     rafraichirTout();
-    alert('Vente validée !');
 }
 
 function afficherHistoriqueVentes() {
@@ -188,7 +227,7 @@ function afficherHistoriqueVentes() {
     container.innerHTML = '';
 
     if (historiqueVentes.length === 0) {
-        container.innerHTML = '<p style="color: #6c757d; font-size: 13px; text-align: center;">Aucune vente enregistrée.</p>';
+        container.innerHTML = '<p style="color: var(--text-secondary); font-size: 13px; text-align: center;">Aucune vente enregistrée.</p>';
         return;
     }
 
@@ -208,13 +247,11 @@ function afficherHistoriqueVentes() {
                 <span><b>Vente #${historiqueVentes.length - index}</b> <small>(${v.heure})</small></span>
                 <span class="tag-canal ${canalClass}">${canalLabel}</span>
             </div>
-            <div style="margin-top: 4px; font-weight: 700; color: #198754;">
+            <div style="margin-top: 6px; font-weight: 700; color: var(--success-color);">
                 ${v.montant.toFixed(2)} €
             </div>
-            <button class="btn-toggle-ticket" onclick="toggleDetailsTicket(${v.id})">Voir le ticket</button>
-            <div id="details-${v.id}" class="ticket-details">
-                ${articlesHTML}
-            </div>
+            <button class="btn-toggle-ticket" onclick="toggleDetailsTicket(${v.id})">Voir le détail</button>
+            <div id="details-${v.id}" class="ticket-details">${articlesHTML}</div>
         `;
 
         container.appendChild(card);
@@ -223,9 +260,7 @@ function afficherHistoriqueVentes() {
 
 function toggleDetailsTicket(id) {
     const el = document.getElementById(`details-${id}`);
-    if (el) {
-        el.classList.toggle('active');
-    }
+    if (el) el.classList.toggle('active');
 }
 
 function rafraichirTout() {
@@ -242,74 +277,48 @@ function rafraichirTout() {
 function exporterStockEtVentes() {
     let totalFacture = 0;
     let totalCash = 0;
-
     const cumulFacture = {};
     const cumulCash = {};
 
     historiqueVentes.forEach(v => {
         if (v.canal === 'facture') {
             totalFacture += v.montant;
-            v.articles.forEach(a => {
-                cumulFacture[a.nom] = (cumulFacture[a.nom] || 0) + a.qte;
-            });
+            v.articles.forEach(a => cumulFacture[a.nom] = (cumulFacture[a.nom] || 0) + a.qte);
         } else {
             totalCash += v.montant;
-            v.articles.forEach(a => {
-                cumulCash[a.nom] = (cumulCash[a.nom] || 0) + a.qte;
-            });
+            v.articles.forEach(a => cumulCash[a.nom] = (cumulCash[a.nom] || 0) + a.qte);
         }
     });
 
     let message = "📊 BILAN DE STOCK & VENTES :\n\n";
 
-    // 1. Ventes Cash / Black
     message += "🔴 VENTES CASH / BLACK :\n";
-    if (Object.keys(cumulCash).length === 0) {
-        message += "- Aucune vente\n";
-    } else {
-        for (const [nom, qte] of Object.entries(cumulCash)) {
-            message += `- ${qte}x ${nom}\n`;
-        }
-    }
+    if (Object.keys(cumulCash).length === 0) message += "- Aucune vente\n";
+    else for (const [nom, qte] of Object.entries(cumulCash)) message += `- ${qte}x ${nom}\n`;
     message += `👉 Total Cash : ${totalCash.toFixed(2)} €\n\n`;
 
-    // 2. Ventes Facturées
     message += "🔵 VENTES FACTURÉES :\n";
-    if (Object.keys(cumulFacture).length === 0) {
-        message += "- Aucune vente\n";
-    } else {
-        for (const [nom, qte] of Object.entries(cumulFacture)) {
-            message += `- ${qte}x ${nom}\n`;
-        }
-    }
+    if (Object.keys(cumulFacture).length === 0) message += "- Aucune vente\n";
+    else for (const [nom, qte] of Object.entries(cumulFacture)) message += `- ${qte}x ${nom}\n`;
     message += `👉 Total Facturé : ${totalFacture.toFixed(2)} €\n\n`;
 
-    // 3. Total Général
     message += `💰 TOTAL GÉNÉRAL ENCAISSÉ : ${(totalFacture + totalCash).toFixed(2)} €\n\n`;
 
-    // 4. Stock Restant
     message += "📦 STOCK RESTANT EN CATALOGUE :\n";
-    if (catalogue.length === 0) {
-        message += "(Catalogue vide)\n";
-    } else {
-        catalogue.forEach(p => {
-            message += `- ${p.nom} : ${p.stock} restant(s)\n`;
-        });
-    }
+    if (catalogue.length === 0) message += "(Catalogue vide)\n";
+    else catalogue.forEach(p => message += `- ${p.nom} : ${p.stock} restant(s)\n`);
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(message).then(() => {
-            alert("Bilan détaillé copié dans le presse-papier !");
-        }).catch(() => alert(message));
+        navigator.clipboard.writeText(message).then(() => alert("Bilan copié !")).catch(() => alert(message));
     } else {
         alert(message);
     }
 }
 
 function reinitialiserTout() {
-    if (confirm('Voulez-vous vraiment TOUT réinitialiser (catalogue et historique des ventes) ?')) {
-        localStorage.removeItem('cartec_stock_v10');
-        localStorage.removeItem('cartec_ventes_v10');
+    if (confirm('Voulez-vous vraiment réinitialiser le catalogue et les ventes ?')) {
+        localStorage.removeItem('cartec_stock_v11');
+        localStorage.removeItem('cartec_ventes_v11');
         catalogue = [];
         historiqueVentes = [];
         ticket = [];
