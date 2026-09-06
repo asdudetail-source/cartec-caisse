@@ -1,4 +1,3 @@
-// Charge le stock sauvegardé dans l'iPad, ou une liste vide
 let catalogue = JSON.parse(localStorage.getItem('cartec_stock')) || [];
 let ticket = [];
 
@@ -9,20 +8,17 @@ window.onload = function() {
 function ajouterProduitManuel(event) {
     event.preventDefault();
     
-    const id = document.getElementById('add-ref').value.trim();
     const nom = document.getElementById('add-nom').value.trim();
     const stock = parseInt(document.getElementById('add-stock').value) || 0;
-    const paNet = parseFloat(document.getElementById('add-pa').value) || 0;
+    const prixPro = parseFloat(document.getElementById('add-pro').value) || 0;
+    const prixParticulier = parseFloat(document.getElementById('add-part').value) || 0;
 
-    // Calcul automatique des tarifs
     const nouveauProduit = {
-        id: id,
+        id: Date.now().toString(),
         nom: nom,
         stock: stock,
-        pa_net: paNet,
-        prix_black: paNet * 1.30,       // Marge Black +30%
-        prix_pro_ttc: paNet * 1.35,    // Marge Pro +35%
-        prix_particulier_ttc: paNet * 1.50 // Marge Particulier +50%
+        prix_pro: prixPro,
+        prix_particulier: prixParticulier
     };
 
     catalogue.push(nouveauProduit);
@@ -37,7 +33,7 @@ function sauvegarderStock() {
 
 function supprimerProduit(id, event) {
     event.stopPropagation();
-    if (confirm('Supprimer ce produit du catalogue ?')) {
+    if (confirm('Supprimer cet article ?')) {
         catalogue = catalogue.filter(p => p.id !== id);
         sauvegarderStock();
         afficherProduits(catalogue);
@@ -48,9 +44,10 @@ function calculerPrix(p) {
     const client = document.getElementById('select-client').value;
     const canal = document.getElementById('select-canal').value;
 
-    if (canal === 'black') return p.prix_black;
-    if (client === 'pro') return p.prix_pro_ttc;
-    return p.prix_particulier_ttc;
+    if (canal === 'black') {
+        return p.prix_pro; // Tarif Pro appliqué sur le canal Black
+    }
+    return client === 'pro' ? p.prix_pro : p.prix_particulier;
 }
 
 function afficherProduits(liste) {
@@ -58,19 +55,19 @@ function afficherProduits(liste) {
     grid.innerHTML = '';
 
     if (liste.length === 0) {
-        grid.innerHTML = '<p style="grid-column: 1/-1; color: #999;">Aucun produit enregistré. Utilisez le formulaire à gauche pour en ajouter.</p>';
+        grid.innerHTML = '<p style="grid-column: 1/-1; color: #8e8e93; text-align: center; padding: 20px;">Aucun produit dans le catalogue.<br>Ajoutez des articles via le formulaire.</p>';
         return;
     }
 
     liste.forEach(p => {
         const prix = calculerPrix(p);
         const card = document.createElement('div');
-        card.className = 'card';
+        card.className = 'product-card';
         card.innerHTML = `
             <span class="btn-suppr" onclick="supprimerProduit('${p.id}', event)">×</span>
-            <strong>${p.nom}</strong><br>
-            <small style="color: #666;">Réf: ${p.id} | Stock: ${p.stock}</small><br>
-            <b style="color: #007aff; font-size: 16px;">${prix.toFixed(2)} €</b>
+            <span class="product-title">${p.nom}</span>
+            <span class="product-stock">Stock: ${p.stock}</span>
+            <div class="product-price">${prix.toFixed(2)} €</div>
         `;
         card.onclick = () => ajouterAuTicket(p);
         grid.appendChild(card);
@@ -79,7 +76,7 @@ function afficherProduits(liste) {
 
 function ajouterAuTicket(produit) {
     if (produit.stock <= 0) {
-        alert("Stock épuisé pour ce produit !");
+        alert("Stock épuisé !");
         return;
     }
     const existant = ticket.find(item => item.produit.id === produit.id);
@@ -88,6 +85,11 @@ function ajouterAuTicket(produit) {
     } else {
         ticket.push({ produit: produit, quantite: 1 });
     }
+    rafraichirTicket();
+}
+
+function rafraichirTout() {
+    afficherProduits(catalogue);
     rafraichirTicket();
 }
 
@@ -120,22 +122,22 @@ function validerVente() {
     });
 
     sauvegarderStock();
-    alert('Vente effectuée ! Le stock a été décrémenté.');
+    alert('Vente effectuée !');
     ticket = [];
-    rafraichirTicket();
-    afficherProduits(catalogue);
+    rafraichirTout();
 }
 
 function filtrerProduits() {
     const q = document.getElementById('search-bar').value.toLowerCase();
-    const filtre = catalogue.filter(p => p.nom.toLowerCase().includes(q) || p.id.toLowerCase().includes(q));
+    const filtre = catalogue.filter(p => p.nom.toLowerCase().includes(q));
     afficherProduits(filtre);
 }
 
 function reinitialiserTout() {
-    if (confirm('Attention, cela va effacer TOUS vos produits enregistrés !')) {
+    if (confirm('Effacer tous les produits enregistrés ?')) {
         localStorage.removeItem('cartec_stock');
         catalogue = [];
-        afficherProduits(catalogue);
+        ticket = [];
+        rafraichirTout();
     }
 }
