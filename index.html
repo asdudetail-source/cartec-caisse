@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Caisse & Stock Cartec</title>
     
-    <!-- Masquer la barre d'adresse sur iOS (Safari) -->
+    <!-- Configuration plein écran Safari / iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Caisse Cartec">
-    
-    <!-- Masquer la barre d'adresse sur Android / Chrome -->
+    <meta name="apple-mobile-web-app-title" content="Cartec Caisse">
+
+    <!-- Configuration plein écran Chrome / Android -->
     <meta name="mobile-web-app-capable" content="yes">
-    
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -31,7 +31,22 @@
         <section id="section-caisse" class="tab-content active">
             <div class="caisse-container">
                 <div class="catalog-panel">
-                    <h2>Produits disponibles</h2>
+                    <h2>Catalogue</h2>
+                    
+                    <!-- Filtres de vente : Tarif & Canal -->
+                    <div class="options-vente">
+                        <select id="select-client" onchange="renderProducts()">
+                            <option value="particulier">Tarif Particulier</option>
+                            <option value="pro">Tarif Professionnel</option>
+                        </select>
+                        <select id="select-canal">
+                            <option value="facture">Canal Facturé</option>
+                            <option value="black">Canal Cash / Black</option>
+                        </select>
+                    </div>
+
+                    <input type="text" id="search-bar" placeholder="Rechercher un article..." oninput="renderProducts()">
+
                     <div id="product-grid" class="product-grid"></div>
                 </div>
 
@@ -52,13 +67,14 @@
 
         <!-- SECTION GESTION DU STOCK -->
         <section id="section-stock" class="tab-content">
-            <h2>Inventaire des Produits</h2>
+            <h2>Inventaire &amp; Ajout Produits</h2>
             <form id="add-product-form" onsubmit="handleAddProduct(event)">
-                <h3>Ajouter / Modifier un produit</h3>
+                <h3>+ Ajouter / Modifier un produit</h3>
                 <div class="form-group">
                     <input type="text" id="prod-name" placeholder="Nom du produit" required>
-                    <input type="number" id="prod-price" placeholder="Prix (€)" step="0.01" required>
-                    <input type="number" id="prod-stock" placeholder="Quantité en stock" required>
+                    <input type="number" id="prod-stock" placeholder="Stock disponible" min="0" required>
+                    <input type="number" id="prod-price-pro" placeholder="Prix Pro (€)" step="0.01" required>
+                    <input type="number" id="prod-price-part" placeholder="Prix Particulier (€)" step="0.01" required>
                     <button type="submit" class="btn-success">Enregistrer produit</button>
                 </div>
             </form>
@@ -67,8 +83,9 @@
                 <thead>
                     <tr>
                         <th>Nom du produit</th>
-                        <th>Prix unitaire</th>
-                        <th>Quantité disponible</th>
+                        <th>Prix Part.</th>
+                        <th>Prix Pro</th>
+                        <th>Stock</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -83,12 +100,19 @@
                 <thead>
                     <tr>
                         <th>Date &amp; Heure</th>
+                        <th>Canal</th>
+                        <th>Tarif</th>
                         <th>Détail des articles</th>
                         <th>Total</th>
                     </tr>
                 </thead>
                 <tbody id="history-table-body"></tbody>
             </table>
+
+            <div class="rep-actions">
+                <button class="btn-export" onclick="exportData()">Copier le bilan (Stock &amp; Ventes)</button>
+                <button class="btn-reset" onclick="resetAll()">Vider catalogue et ventes</button>
+            </div>
         </section>
     </main>
 
