@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     chargerDonnees();
     rafraichirTout();
 
-    // 1. Gestion de la fenêtre Modale (+ Produit)
+    // 1. Gestion Ouverture/Fermeture Modale Produit
     const modal = document.getElementById('modal-produit');
     const btnOuvrir = document.getElementById('btn-ouvrir-modal');
     const btnFermer = document.getElementById('btn-fermer-modal');
@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnOuvrir && modal) {
         btnOuvrir.onclick = function(e) {
             e.preventDefault();
-            modal.style.display = 'flex';
             modal.classList.add('active');
         };
     }
@@ -22,25 +21,21 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnFermer && modal) {
         btnFermer.onclick = function(e) {
             e.preventDefault();
-            modal.style.display = 'none';
             modal.classList.remove('active');
         };
     }
 
-    // 2. Soumission du formulaire Ajouter Produit
+    // 2. Soumission du Formulaire d'ajout
     const formProduit = document.getElementById('form-produit');
     if (formProduit) {
         formProduit.onsubmit = function(e) {
             e.preventDefault();
             ajouterProduit();
-            if (modal) {
-                modal.style.display = 'none';
-                modal.classList.remove('active');
-            }
+            if (modal) modal.classList.remove('active');
         };
     }
 
-    // 3. Changements de filtres & recherche
+    // 3. Changement des filtres & barre de recherche
     const selectClient = document.getElementById('select-client');
     if (selectClient) selectClient.onchange = rafraichirTout;
 
@@ -50,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchBar = document.getElementById('search-bar');
     if (searchBar) searchBar.oninput = rafraichirTout;
 
-    // 4. Boutons d'action principaux
+    // 4. Boutons d'action
     const btnValider = document.getElementById('btn-valider');
     if (btnValider) btnValider.onclick = validerVente;
 
@@ -92,7 +87,7 @@ function ajouterProduit() {
     const prixParticulier = parseFloat(elPart ? elPart.value : 0) || 0;
 
     if (!nom) {
-        alert("Veuillez entrer un nom d'article.");
+        alert("Veuillez saisir un nom d'article.");
         return;
     }
 
@@ -108,7 +103,6 @@ function ajouterProduit() {
     sauvegarderDonnees();
     rafraichirTout();
 
-    // Réinitialisation du formulaire
     document.getElementById('form-produit').reset();
 }
 
@@ -125,7 +119,7 @@ function afficherCatalogue(liste) {
     grid.innerHTML = '';
 
     if (liste.length === 0) {
-        grid.innerHTML = '<p style="grid-column: 1/-1; color: #8e8e93; text-align: center; padding: 20px;">Aucun article disponible dans le catalogue.</p>';
+        grid.innerHTML = '<p style="grid-column: 1/-1; color: var(--text-secondary); text-align: center; padding: 20px;">Aucun article dans le catalogue.</p>';
         return;
     }
 
@@ -139,14 +133,13 @@ function afficherCatalogue(liste) {
         else if (p.stock <= 3) badgeClass = 'stock-low';
 
         card.innerHTML = `
-            <div style="flex: 1;">
+            <div>
                 <span class="product-title">${p.nom}</span>
                 <span class="product-badge-stock ${badgeClass}">Stock: ${p.stock}</span>
             </div>
             <div class="product-price">${prix.toFixed(2)} €</div>
         `;
 
-        // Gestion du clic sur l'article
         let longPressTimer = null;
         let isLongPress = false;
 
@@ -175,7 +168,7 @@ function afficherCatalogue(liste) {
             }
         });
 
-        card.addEventListener('click', (e) => {
+        card.addEventListener('click', () => {
             if (!isLongPress) {
                 ajouterAuTicket(p);
             }
@@ -186,7 +179,7 @@ function afficherCatalogue(liste) {
 }
 
 function ouvrirMenuOptionProduit(produit) {
-    const choix = confirm(`Gestion de "${produit.nom}" :\n\n• OK = Modifier le stock\n• Annuler = Supprimer l'article`);
+    const choix = confirm(`Gestion de "${produit.nom}" :\n\n- [OK] pour MODIFIER LE STOCK\n- [Annuler] pour SUPPRIMER L'ARTICLE`);
     
     if (choix) {
         const nouveauStock = prompt(`Nouveau stock pour "${produit.nom}" :`, produit.stock);
@@ -210,7 +203,7 @@ function ouvrirMenuOptionProduit(produit) {
 function ajouterAuTicket(produit) {
     const prodCatalogue = catalogue.find(p => p.id === produit.id);
     if (!prodCatalogue || prodCatalogue.stock <= 0) {
-        alert("Stock épuisé pour cet article.");
+        alert("Stock épuisé.");
         return;
     }
 
@@ -242,10 +235,6 @@ function afficherTicket() {
 
         const div = document.createElement('div');
         div.className = 'ticket-item';
-        div.style.display = 'flex';
-        div.style.justifyContent = 'space-between';
-        div.style.padding = '8px 0';
-        div.style.borderBottom = '1px solid #2c2c2e';
         div.innerHTML = `
             <span><b>${item.quantite}x</b> ${item.produit.nom}</span>
             <span><b>${sousTotal.toFixed(2)} €</b></span>
@@ -290,7 +279,7 @@ function validerVente() {
     sauvegarderDonnees();
     ticket = [];
     rafraichirTout();
-    alert("Vente enregistrée avec succès !");
+    alert("Vente validée !");
 }
 
 function afficherHistoriqueVentes() {
@@ -300,7 +289,7 @@ function afficherHistoriqueVentes() {
     container.innerHTML = '';
 
     if (historiqueVentes.length === 0) {
-        container.innerHTML = '<p style="color: #8e8e93; font-size: 13px; text-align: center;">Aucune vente enregistrée.</p>';
+        container.innerHTML = '<p style="color: var(--text-secondary); font-size: 13px; text-align: center;">Aucune vente enregistrée.</p>';
         return;
     }
 
@@ -316,15 +305,15 @@ function afficherHistoriqueVentes() {
         const card = document.createElement('div');
         card.className = 'vente-card';
         card.innerHTML = `
-            <div class="vente-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span><b>Vente #${historiqueVentes.length - index}</b> <small>(${v.heure})</small></span>
                 <span class="tag-canal ${canalClass}">${canalLabel}</span>
             </div>
-            <div style="margin-top: 6px; font-weight: 700; color: #30d158;">
+            <div style="margin-top: 6px; font-weight: 700; color: var(--accent-green);">
                 ${v.montant.toFixed(2)} €
             </div>
-            <button class="btn-toggle-ticket" onclick="toggleDetailsTicket(${v.id})" style="margin-top: 8px; background: none; border: none; color: #0a84ff; padding: 0; font-size: 12px; cursor: pointer;">Voir le détail</button>
-            <div id="details-${v.id}" class="ticket-details" style="display: none; margin-top: 8px; font-size: 12px; color: #8e8e93;">${articlesHTML}</div>
+            <button onclick="toggleDetailsTicket(${v.id})" style="margin-top: 8px; background: none; border: none; color: var(--accent-blue); padding: 0; font-size: 12px; cursor: pointer;">Voir le détail</button>
+            <div id="details-${v.id}" style="display: none; margin-top: 8px; font-size: 12px; color: var(--text-secondary);">${articlesHTML}</div>
         `;
 
         container.appendChild(card);
@@ -379,9 +368,9 @@ function exporterStockEtVentes() {
     else for (const [nom, qte] of Object.entries(cumulFacture)) message += `- ${qte}x ${nom}\n`;
     message += `👉 Total Facturé : ${totalFacture.toFixed(2)} €\n\n`;
 
-    message += `💰 TOTAL GÉNÉRAL : ${(totalFacture + totalCash).toFixed(2)} €\n\n`;
+    message += `💰 TOTAL GÉNÉRAL ENCAISSÉ : ${(totalFacture + totalCash).toFixed(2)} €\n\n`;
 
-    message += "📦 STOCK RESTANT :\n";
+    message += "📦 STOCK RESTANT EN CATALOGUE :\n";
     if (catalogue.length === 0) message += "(Catalogue vide)\n";
     else catalogue.forEach(p => message += `- ${p.nom} : ${p.stock} restant(s)\n`);
 
@@ -393,7 +382,7 @@ function exporterStockEtVentes() {
 }
 
 function reinitialiserTout() {
-    if (confirm('Voulez-vous vraiment réinitialiser le catalogue et l\'historique des ventes ?')) {
+    if (confirm('Voulez-vous vraiment réinitialiser le catalogue et les ventes ?')) {
         localStorage.removeItem('cartec_stock_v11');
         localStorage.removeItem('cartec_ventes_v11');
         catalogue = [];
