@@ -8,7 +8,7 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Formulaire d'ajout -->
+        <!-- Section 1 : Ajout de produit -->
         <section class="card-section">
             <h2>+ Nouveau Produit</h2>
             <form id="form-produit">
@@ -20,15 +20,15 @@
             </form>
         </section>
 
-        <!-- Catalogue Produits -->
+        <!-- Section 2 : Catalogue des produits -->
         <section class="card-section">
             <h2>Catalogue</h2>
             <input type="text" id="search-bar" placeholder="Rechercher un article...">
             
             <div class="options-vente">
                 <select id="select-client">
-                    <option value="particulier">Client Particulier</option>
-                    <option value="pro">Client Professionnel</option>
+                    <option value="particulier">Tarif Particulier</option>
+                    <option value="pro">Tarif Professionnel</option>
                 </select>
                 <select id="select-canal">
                     <option value="facture">Canal Facturé</option>
@@ -39,7 +39,7 @@
             <div id="produits-grid" class="grid"></div>
         </section>
 
-        <!-- Ticket & Export -->
+        <!-- Section 3 : Ticket de caisse & Actions -->
         <section class="card-section">
             <h2>Ticket en cours</h2>
             <div id="ticket-items" class="ticket-list"></div>
@@ -51,7 +51,7 @@
 
             <button id="btn-valider" class="btn-valider">Valider la vente</button>
 
-            <hr style="margin: 20px 0; border: none; border-top: 1px solid #e5e5ea;">
+            <hr class="separator">
 
             <h2>Espace Représentant</h2>
             <button id="btn-export" class="btn-export">Copier le bilan de stock</button>
