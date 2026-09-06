@@ -6,45 +6,42 @@ document.addEventListener('DOMContentLoaded', function() {
     chargerDonnees();
     rafraichirTout();
 
-    // Soumission du formulaire pour ajouter un nouveau produit
+    // Soumission du formulaire d'ajout
     document.getElementById('form-produit').addEventListener('submit', function(e) {
         e.preventDefault();
         ajouterProduit();
     });
 
-    // Changement de type de tarif ou de canal
+    // Changement de tarif ou canal
     document.getElementById('select-client').addEventListener('change', rafraichirTout);
     document.getElementById('select-canal').addEventListener('change', rafraichirTout);
     
-    // Filtrage par recherche
+    // Recherche
     document.getElementById('search-bar').addEventListener('input', rafraichirTout);
 
-    // Boutons de gestion
+    // Boutons
     document.getElementById('btn-valider').addEventListener('click', validerVente);
     document.getElementById('btn-export').addEventListener('click', exporterStockEtVentes);
     document.getElementById('btn-reset').addEventListener('click', reinitialiserTout);
 });
 
-// Charge le stock et l'historique des ventes sauvegardés
 function chargerDonnees() {
-    const dataStock = localStorage.getItem('cartec_stock_v7');
+    const dataStock = localStorage.getItem('cartec_stock_v8');
     if (dataStock) {
         try { catalogue = JSON.parse(dataStock); } catch(e) { catalogue = []; }
     }
 
-    const dataVentes = localStorage.getItem('cartec_ventes_v7');
+    const dataVentes = localStorage.getItem('cartec_ventes_v8');
     if (dataVentes) {
         try { historiqueVentes = JSON.parse(dataVentes); } catch(e) { historiqueVentes = []; }
     }
 }
 
-// Sauvegarde l'état actuel
 function sauvegarderDonnees() {
-    localStorage.setItem('cartec_stock_v7', JSON.stringify(catalogue));
-    localStorage.setItem('cartec_ventes_v7', JSON.stringify(historiqueVentes));
+    localStorage.setItem('cartec_stock_v8', JSON.stringify(catalogue));
+    localStorage.setItem('cartec_ventes_v8', JSON.stringify(historiqueVentes));
 }
 
-// Ajoute un nouveau produit au catalogue
 function ajouterProduit() {
     const nom = document.getElementById('add-nom').value.trim();
     const stock = parseInt(document.getElementById('add-stock').value) || 0;
@@ -66,7 +63,6 @@ function ajouterProduit() {
     document.getElementById('form-produit').reset();
 }
 
-// Supprime un produit du catalogue
 function supprimerProduit(id, event) {
     event.stopPropagation();
     if (confirm('Supprimer cet article du catalogue ?')) {
@@ -76,13 +72,11 @@ function supprimerProduit(id, event) {
     }
 }
 
-// Récupère le prix selon le type de client sélectionné (Pro ou Particulier)
 function obtenirPrixProduit(p) {
     const typeClient = document.getElementById('select-client').value;
     return typeClient === 'pro' ? p.prix_pro : p.prix_particulier;
 }
 
-// Affiche la grille des produits
 function afficherCatalogue(liste) {
     const grid = document.getElementById('produits-grid');
     grid.innerHTML = '';
@@ -96,7 +90,6 @@ function afficherCatalogue(liste) {
         const prix = obtenirPrixProduit(p);
         const card = document.createElement('div');
         card.className = 'product-card';
-        
         const couleurStock = p.stock <= 1 ? '#ff3b30' : '#8e8e93';
 
         card.innerHTML = `
@@ -113,7 +106,6 @@ function afficherCatalogue(liste) {
     });
 }
 
-// Ajoute un article au ticket de caisse
 function ajouterAuTicket(produit) {
     const prodCatalogue = catalogue.find(p => p.id === produit.id);
     if (!prodCatalogue || prodCatalogue.stock <= 0) {
@@ -135,7 +127,6 @@ function ajouterAuTicket(produit) {
     afficherTicket();
 }
 
-// Met à jour l'affichage du ticket et le total
 function afficherTicket() {
     const container = document.getElementById('ticket-items');
     container.innerHTML = '';
@@ -156,7 +147,6 @@ function afficherTicket() {
     document.getElementById('total-amount').innerText = total.toFixed(2) + ' €';
 }
 
-// Valide la vente et enregistre la répartition par canal
 function validerVente() {
     if (ticket.length === 0) {
         alert('Le ticket est vide.');
@@ -165,33 +155,85 @@ function validerVente() {
 
     const canalActuel = document.getElementById('select-canal').value; // 'facture' ou 'black'
     let totalVente = 0;
+    const articlesVendus = [];
 
-    // Déduction des stocks et calcul du total de cette vente
     ticket.forEach(item => {
         const prod = catalogue.find(p => p.id === item.produit.id);
         if (prod) {
             prod.stock = Math.max(0, prod.stock - item.quantite);
         }
         const prixU = obtenirPrixProduit(item.produit);
-        totalVente += (prixU * item.quantite);
+        const sousTotal = prixU * item.quantite;
+        totalVente += sousTotal;
+
+        articlesVendus.push({
+            nom: item.produit.nom,
+            qte: item.quantite,
+            prixU: prixU,
+            total: sousTotal
+        });
     });
 
-    // Enregistrement de la vente dans l'historique
-    historiqueVentes.push({
-        date: new Date().toISOString(),
+    // Enregistrement avec timestamp et ID unique
+    historiqueVentes.unshift({
+        id: Date.now(),
+        heure: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         canal: canalActuel,
         montant: totalVente,
-        articles: ticket.map(i => ({ nom: i.produit.nom, qte: i.quantite }))
+        articles: articlesVendus
     });
 
     sauvegarderDonnees();
     ticket = [];
-    
     rafraichirTout();
-    alert('Vente validée et enregistrée !');
+    alert('Vente validée !');
 }
 
-// Centralise le rafraîchissement global
+function afficherHistoriqueVentes() {
+    const container = document.getElementById('historique-ventes');
+    container.innerHTML = '';
+
+    if (historiqueVentes.length === 0) {
+        container.innerHTML = '<p style="color: #8e8e93; font-size: 13px; text-align: center;">Aucune vente enregistrée.</p>';
+        return;
+    }
+
+    historiqueVentes.forEach((v, index) => {
+        const canalLabel = v.canal === 'facture' ? 'Facturé' : 'Cash / Black';
+        const canalClass = v.canal === 'facture' ? 'tag-facture' : 'tag-black';
+
+        let articlesHTML = '';
+        v.articles.forEach(a => {
+            articlesHTML += `<div>• ${a.qte}x ${a.nom} (${a.total.toFixed(2)} €)</div>`;
+        });
+
+        const card = document.createElement('div');
+        card.className = 'vente-card';
+        card.innerHTML = `
+            <div class="vente-header">
+                <span><b>Vente #${historiqueVentes.length - index}</b> <small>(${v.heure})</small></span>
+                <span class="tag-canal ${canalClass}">${canalLabel}</span>
+            </div>
+            <div style="margin-top: 4px; font-weight: 700; color: #34c759;">
+                ${v.montant.toFixed(2)} €
+            </div>
+            <button class="btn-toggle-ticket" onclick="toggleDetailsTicket(${v.id})">Voir le ticket</button>
+            <div id="details-${v.id}" class="ticket-details">
+                ${articlesHTML}
+            </div>
+        `;
+
+        container.appendChild(card);
+    });
+}
+
+function toggleDetailsTicket(id) {
+    const el = document.getElementById(`details-${id}`);
+    if (el) {
+        el.classList.toggle('active');
+    }
+}
+
 function rafraichirTout() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
     const listeAffichee = query 
@@ -200,25 +242,60 @@ function rafraichirTout() {
 
     afficherCatalogue(listeAffichee);
     afficherTicket();
+    afficherHistoriqueVentes();
 }
 
-// Exporte le bilan des stocks + le total Vendu en Facturé et en Cash
 function exporterStockEtVentes() {
     let totalFacture = 0;
     let totalCash = 0;
 
-    // Calcul des totaux par canal
+    // Regroupement des articles vendus par canal
+    const cumulFacture = {};
+    const cumulCash = {};
+
     historiqueVentes.forEach(v => {
         if (v.canal === 'facture') {
             totalFacture += v.montant;
-        } else if (v.canal === 'black') {
+            v.articles.forEach(a => {
+                cumulFacture[a.nom] = (cumulFacture[a.nom] || 0) + a.qte;
+            });
+        } else {
             totalCash += v.montant;
+            v.articles.forEach(a => {
+                cumulCash[a.nom] = (cumulCash[a.nom] || 0) + a.qte;
+            });
         }
     });
 
     let message = "📊 BILAN DE STOCK & VENTES :\n\n";
 
-    message += "📦 STOCK ACTUEL RESTANT :\n";
+    // 1. Ventes Cash / Black
+    message += "🔴 VENTES CASH / BLACK :\n";
+    if (Object.keys(cumulCash).length === 0) {
+        message += "- Aucune vente\n";
+    } else {
+        for (const [nom, qte] of Object.entries(cumulCash)) {
+            message += `- ${qte}x ${nom}\n`;
+        }
+    }
+    message += `👉 Total Cash : ${totalCash.toFixed(2)} €\n\n`;
+
+    // 2. Ventes Facturées
+    message += "🔵 VENTES FACTURÉES :\n";
+    if (Object.keys(cumulFacture).length === 0) {
+        message += "- Aucune vente\n";
+    } else {
+        for (const [nom, qte] of Object.entries(cumulFacture)) {
+            message += `- ${qte}x ${nom}\n`;
+        }
+    }
+    message += `👉 Total Facturé : ${totalFacture.toFixed(2)} €\n\n`;
+
+    // 3. Total Général
+    message += `💰 TOTAL GÉNÉRAL ENCAISSÉ : ${(totalFacture + totalCash).toFixed(2)} €\n\n`;
+
+    // 4. Stock Restant
+    message += "📦 STOCK RESTANT EN CATALOGUE :\n";
     if (catalogue.length === 0) {
         message += "(Catalogue vide)\n";
     } else {
@@ -227,25 +304,19 @@ function exporterStockEtVentes() {
         });
     }
 
-    message += "\n💰 TOTAL DES VENTES ENCAISSÉES :\n";
-    message += `- Facturé : ${totalFacture.toFixed(2)} €\n`;
-    message += `- Cash / Black : ${totalCash.toFixed(2)} €\n`;
-    message += `- TOTAL GÉNÉRAL : ${(totalFacture + totalCash).toFixed(2)} €\n`;
-
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(message).then(() => {
-            alert("Bilan (Stock & Ventes) copié dans le presse-papier !");
+            alert("Bilan détaillé copié dans le presse-papier !");
         }).catch(() => alert(message));
     } else {
         alert(message);
     }
 }
 
-// Réinitialise tout (stock et historique des ventes)
 function reinitialiserTout() {
     if (confirm('Voulez-vous vraiment TOUT réinitialiser (catalogue et historique des ventes) ?')) {
-        localStorage.removeItem('cartec_stock_v7');
-        localStorage.removeItem('cartec_ventes_v7');
+        localStorage.removeItem('cartec_stock_v8');
+        localStorage.removeItem('cartec_ventes_v8');
         catalogue = [];
         historiqueVentes = [];
         ticket = [];
