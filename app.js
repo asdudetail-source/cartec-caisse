@@ -1,6 +1,3 @@
-// Version du script pour vider le cache
-console.log("App version 2.0 chargée");
-
 let stock = JSON.parse(localStorage.getItem('cartec_stock')) || [
     { id: 1, name: "Nettoyant Jantes Cartec", cost: 8.00, pricePart: 18.00, pricePro: 12.00, stock: 10 },
     { id: 2, name: "Shampoing Carosserie", cost: 6.00, pricePart: 15.00, pricePro: 10.00, stock: 15 }
@@ -191,8 +188,8 @@ function editProduct(id) {
     document.getElementById('prod-name').value = prod.name;
     document.getElementById('prod-stock').value = prod.stock;
     document.getElementById('prod-cost').value = prod.cost || 0;
-    document.getElementById('prod-price-pro').value = prod.pricePro;
     document.getElementById('prod-price-part').value = prod.pricePart;
+    document.getElementById('prod-price-pro').value = prod.pricePro;
 
     editingProductId = id;
 
@@ -224,8 +221,8 @@ function handleAddProduct(e) {
     const name = document.getElementById('prod-name').value;
     const stockQty = parseInt(document.getElementById('prod-stock').value);
     const cost = parseFloat(document.getElementById('prod-cost').value);
-    const pricePro = parseFloat(document.getElementById('prod-price-pro').value);
     const pricePart = parseFloat(document.getElementById('prod-price-part').value);
+    const pricePro = parseFloat(document.getElementById('prod-price-pro').value);
 
     if (editingProductId !== null) {
         const prod = stock.find(p => p.id === editingProductId);
@@ -233,8 +230,8 @@ function handleAddProduct(e) {
             prod.name = name;
             prod.stock = stockQty;
             prod.cost = cost;
-            prod.pricePro = pricePro;
             prod.pricePart = pricePart;
+            prod.pricePro = pricePro;
         }
         cancelEdit();
     } else {
@@ -242,10 +239,10 @@ function handleAddProduct(e) {
         if (existingProduct) {
             existingProduct.stock += stockQty;
             existingProduct.cost = cost;
-            existingProduct.pricePro = pricePro;
             existingProduct.pricePart = pricePart;
+            existingProduct.pricePro = pricePro;
         } else {
-            stock.push({ id: Date.now(), name, cost, pricePro, pricePart, stock: stockQty });
+            stock.push({ id: Date.now(), name, cost, pricePart, pricePro, stock: stockQty });
         }
         e.target.reset();
     }
