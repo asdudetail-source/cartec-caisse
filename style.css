@@ -284,3 +284,56 @@ button:active {
 
 .btn-export { background-color: #5856d6; color: white; flex: 1; }
 .btn-reset { background-color: #8e8e93; color: white; flex: 1; }
+/* Styles pour la modale d'édition */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.modal-content h3 {
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+}
+
+.modal-group {
+    margin-bottom: 1rem;
+}
+
+.modal-group label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    color: #65676b;
+}
+
+.modal-group input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 2px solid #e4e6eb;
+    border-radius: 10px;
+    font-size: 1rem;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+}
