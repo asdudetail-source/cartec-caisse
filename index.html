@@ -2,111 +2,109 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caisse & Stock Cartec</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gestion Stock & Caisse - L'As Du Détail</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="app-container">
-        
-        <!-- Section Catalogue -->
-        <section class="card-section section-catalogue">
-            <div class="header-catalogue">
-                <div>
-                    <h2>Catalogue</h2>
-                    <span class="subtitle">Sélectionnez ou restez appuyé pour gérer</span>
-                </div>
-                <button id="btn-ouvrir-modal" class="btn-primary">
-                    <i class="fa-solid fa-plus"></i> Nouveau Produit
-                </button>
-            </div>
 
-            <div class="search-box">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" id="search-bar" placeholder="Rechercher un article...">
-            </div>
+    <header class="app-header">
+        <h1>L'As Du Détail — Caisse</h1>
+        <button id="btn-ouvrir-modal" class="btn-primary">+ Produit</button>
+    </header>
+
+    <main class="app-container">
+        <!-- Section Filtres & Recherche -->
+        <section class="controls-section">
+            <input type="text" id="search-bar" placeholder="Rechercher un produit..." autocomplete="off">
             
-            <div class="options-vente">
-                <div class="select-wrapper">
-                    <i class="fa-solid fa-user-tag"></i>
+            <div class="select-group">
+                <div class="select-box">
+                    <label for="select-client">Tarif :</label>
                     <select id="select-client">
-                        <option value="particulier">Tarif Particulier</option>
-                        <option value="pro">Tarif Professionnel</option>
+                        <option value="particulier">Particulier</option>
+                        <option value="pro">Professionnel</option>
                     </select>
                 </div>
-                <div class="select-wrapper">
-                    <i class="fa-solid fa-receipt"></i>
+                
+                <div class="select-box">
+                    <label for="select-canal">Canal :</label>
                     <select id="select-canal">
-                        <option value="facture">Canal Facturé</option>
-                        <option value="black">Canal Cash / Black</option>
+                        <option value="black">Cash / Black</option>
+                        <option value="facture">Facturé</option>
                     </select>
                 </div>
             </div>
-
-            <div id="produits-grid" class="grid"></div>
         </section>
 
-        <!-- Section Ticket de caisse & Actions -->
-        <section class="card-section section-ticket">
-            <h2><i class="fa-solid fa-cart-shopping"></i> Ticket en cours</h2>
-            <div id="ticket-items" class="ticket-list"></div>
+        <!-- Grille du Catalogue Produit -->
+        <section class="catalogue-section">
+            <h2>Catalogue <small>(Appui long pour gérer le stock/supprimer)</small></h2>
+            <div id="produits-grid" class="produits-grid">
+                <!-- Les cartes produits s'affichent ici -->
+            </div>
+        </section>
+
+        <!-- Panneau Ticket en cours & Actions -->
+        <section class="ticket-section">
+            <h2>Ticket en cours</h2>
+            <div id="ticket-items" class="ticket-items">
+                <!-- Les articles ajoutés s'affichent ici -->
+            </div>
             
-            <div class="total-box">
-                <small>TOTAL À PAYER</small>
-                <h1 id="total-amount">0.00 €</h1>
+            <div class="ticket-total">
+                <span>Total :</span>
+                <span id="total-amount">0.00 €</span>
             </div>
 
-            <button id="btn-valider" class="btn-success btn-large">
-                <i class="fa-solid fa-check-circle"></i> Valider la vente
-            </button>
-
-            <hr class="separator">
-
-            <h2><i class="fa-solid fa-clock-rotate-left"></i> Dernières Ventes</h2>
-            <div id="historique-ventes" class="ventes-list"></div>
-
-            <hr class="separator">
-
-            <h2><i class="fa-solid fa-chart-pie"></i> Espace Représentant</h2>
-            <button id="btn-export" class="btn-secondary">
-                <i class="fa-solid fa-copy"></i> Copier le bilan (Stock & Ventes)
-            </button>
-            <button id="btn-reset" class="btn-danger-outline">
-                <i class="fa-solid fa-trash-can"></i> Vider catalogue et ventes
-            </button>
+            <button id="btn-valider" class="btn-success btn-block">Valider la vente</button>
         </section>
-    </div>
 
-    <!-- MODAL / POP-UP POUR AJOUTER UN PRODUIT -->
-    <div id="modal-produit" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Ajouter une fiche produit</h3>
-                <span id="btn-fermer-modal" class="close-modal">&times;</span>
+        <!-- Historique des ventes -->
+        <section class="historique-section">
+            <h2>Historique des ventes</h2>
+            <div id="historique-ventes" class="historique-list">
+                <!-- L'historique s'affiche ici -->
             </div>
+        </section>
+
+        <!-- Actions de gestion globale -->
+        <section class="global-actions">
+            <button id="btn-export" class="btn-secondary btn-block">📊 Copier le Bilan & Stock</button>
+            <button id="btn-reset" class="btn-danger btn-block">⚠️ Réinitialiser l'application</button>
+        </section>
+    </main>
+
+    <!-- Modal d'ajout de produit -->
+    <div id="modal-produit" class="modal">
+        <div class="modal-content">
+            <h3>Ajouter un nouvel article</h3>
             <form id="form-produit">
                 <div class="form-group">
-                    <label>Nom de l'article</label>
-                    <input type="text" id="add-nom" placeholder="ex: Nettoyant Jantes 500ml" required>
+                    <label for="add-nom">Nom de l'article *</label>
+                    <input type="text" id="add-nom" required placeholder="Ex: Magic Wheel Cleaner">
                 </div>
+
                 <div class="form-group">
-                    <label>Stock initial</label>
-                    <input type="number" id="add-stock" placeholder="0" min="0" required>
+                    <label for="add-stock">Stock initial</label>
+                    <input type="number" id="add-stock" value="0" min="0">
                 </div>
+
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Prix Pro (€)</label>
-                        <input type="number" step="0.01" id="add-pro" placeholder="0.00" required>
+                        <label for="add-part">Prix Particulier (€)</label>
+                        <input type="number" id="add-part" step="0.01" value="0.00" min="0">
                     </div>
                     <div class="form-group">
-                        <label>Prix Particulier (€)</label>
-                        <input type="number" step="0.01" id="add-part" placeholder="0.00" required>
+                        <label for="add-pro">Prix Pro (€)</label>
+                        <input type="number" id="add-pro" step="0.01" value="0.00" min="0">
                     </div>
                 </div>
-                <button type="submit" class="btn-primary btn-full">
-                    <i class="fa-solid fa-floppy-disk"></i> Enregistrer l'article
-                </button>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn-success" style="flex: 1;">Enregistrer</button>
+                    <button type="button" id="btn-fermer-modal" class="btn-secondary">Annuler</button>
+                </div>
             </form>
         </div>
     </div>
