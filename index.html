@@ -13,10 +13,9 @@
             <h2>+ Nouveau Produit</h2>
             <form id="form-produit" onsubmit="ajouterProduitManuel(event)">
                 <input type="text" id="add-nom" placeholder="Nom du produit" required>
-                <input type="number" id="add-stock" placeholder="Stock disponible" min="0" required>
-                <input type="number" step="0.01" id="add-black" placeholder="Prix Black (€)" required>
-                <input type="number" step="0.01" id="add-pro" placeholder="Prix Pro HT / Net (€)" required>
-                <input type="number" step="0.01" id="add-part" placeholder="Prix Particulier TTC (€)" required>
+                <input type="number" id="add-stock" placeholder="Stock dispo" min="0" required>
+                <input type="number" step="0.01" id="add-pro" placeholder="Prix pro (€)" required>
+                <input type="number" step="0.01" id="add-part" placeholder="Prix particulier (€)" required>
                 <button type="submit" class="btn-ajouter">Ajouter au catalogue</button>
             </form>
         </section>
@@ -31,7 +30,7 @@
                     <option value="particulier">Client Particulier</option>
                     <option value="pro">Client Professionnel</option>
                 </select>
-                <select id="select-canal" onchange="rafraichirTout()">
+                <select id="select-canal">
                     <option value="facture">Canal Facturé</option>
                     <option value="black">Canal Black</option>
                 </select>
