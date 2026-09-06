@@ -139,7 +139,6 @@ input:focus, select:focus {
     font-size: 14px; 
 }
 
-/* Total Box : Style lumineux */
 .total-box { 
     background: #f8f9fa; 
     border: 1px solid #e9ecef;
@@ -170,7 +169,6 @@ input:focus, select:focus {
     border-top: 1px solid #e9ecef;
 }
 
-/* Historique des tickets */
 .ventes-list {
     max-height: 220px;
     overflow-y: auto;
