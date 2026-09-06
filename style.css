@@ -122,8 +122,8 @@ input:focus, select:focus {
 }
 
 .ticket-list { 
-    min-height: 100px; 
-    max-height: 220px; 
+    min-height: 80px; 
+    max-height: 200px; 
     overflow-y: auto; 
     margin-bottom: 15px; 
 }
@@ -161,6 +161,59 @@ input:focus, select:focus {
     margin: 20px 0; 
     border: none; 
     border-top: 1px solid #e5e5ea;
+}
+
+/* Styles pour l'historique des tickets */
+.ventes-list {
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.vente-card {
+    border: 1px solid #e5e5ea;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #f9f9fb;
+}
+
+.vente-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tag-canal {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+}
+
+.tag-facture { background: #e5f1ff; color: #007aff; }
+.tag-black { background: #ffe5e5; color: #ff3b30; }
+
+.btn-toggle-ticket {
+    background: #e5e5ea;
+    color: #1c1c1e;
+    padding: 6px 12px;
+    font-size: 12px;
+    margin-top: 6px;
+    width: auto;
+    border-radius: 6px;
+}
+
+.ticket-details {
+    display: none;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed #c7c7cc;
+    font-size: 13px;
+}
+
+.ticket-details.active {
+    display: block;
 }
 
 button { 
