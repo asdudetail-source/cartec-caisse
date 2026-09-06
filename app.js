@@ -196,8 +196,7 @@ function editProduct(id) {
     document.getElementById('form-title').innerText = "✏️ Modifier l'article";
     
     const submitBtn = document.getElementById('submit-btn');
-    submitBtn.innerText = "Mettre à jour";
-    submitBtn.style.backgroundColor = "#ff9500";
+    submitBtn.innerText = "Mettre à jour l'article";
 
     document.getElementById('cancel-edit-btn').style.display = "inline-block";
     document.getElementById('add-product-form').scrollIntoView({ behavior: 'smooth' });
@@ -210,7 +209,6 @@ function cancelEdit() {
     
     const submitBtn = document.getElementById('submit-btn');
     submitBtn.innerText = "Enregistrer";
-    submitBtn.style.backgroundColor = "";
 
     document.getElementById('cancel-edit-btn').style.display = "none";
 }
