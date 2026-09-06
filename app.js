@@ -1,8 +1,9 @@
 let catalogue = [];
 let ticket = [];
+let historiqueVentes = [];
 
 document.addEventListener('DOMContentLoaded', function() {
-    chargerStock();
+    chargerDonnees();
     rafraichirTout();
 
     // Soumission du formulaire pour ajouter un nouveau produit
@@ -20,25 +21,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Boutons de gestion
     document.getElementById('btn-valider').addEventListener('click', validerVente);
-    document.getElementById('btn-export').addEventListener('click', exporterStock);
+    document.getElementById('btn-export').addEventListener('click', exporterStockEtVentes);
     document.getElementById('btn-reset').addEventListener('click', reinitialiserTout);
 });
 
-// Charge le stock sauvegardé dans le navigateur
-function chargerStock() {
-    const data = localStorage.getItem('cartec_stock_v6');
-    if (data) {
-        try { 
-            catalogue = JSON.parse(data); 
-        } catch(e) { 
-            catalogue = []; 
-        }
+// Charge le stock et l'historique des ventes sauvegardés
+function chargerDonnees() {
+    const dataStock = localStorage.getItem('cartec_stock_v7');
+    if (dataStock) {
+        try { catalogue = JSON.parse(dataStock); } catch(e) { catalogue = []; }
+    }
+
+    const dataVentes = localStorage.getItem('cartec_ventes_v7');
+    if (dataVentes) {
+        try { historiqueVentes = JSON.parse(dataVentes); } catch(e) { historiqueVentes = []; }
     }
 }
 
-// Sauvegarde l'état actuel du catalogue
-function sauvegarderStock() {
-    localStorage.setItem('cartec_stock_v6', JSON.stringify(catalogue));
+// Sauvegarde l'état actuel
+function sauvegarderDonnees() {
+    localStorage.setItem('cartec_stock_v7', JSON.stringify(catalogue));
+    localStorage.setItem('cartec_ventes_v7', JSON.stringify(historiqueVentes));
 }
 
 // Ajoute un nouveau produit au catalogue
@@ -50,23 +53,16 @@ function ajouterProduit() {
 
     if (!nom) return;
 
-    // Création de l'objet produit
-    const nouveauProduit = {
+    catalogue.push({
         id: Date.now().toString(),
         nom: nom,
         stock: stock,
         prix_pro: prixPro,
         prix_particulier: prixParticulier
-    };
+    });
 
-    // Ajout dans le tableau principal
-    catalogue.push(nouveauProduit);
-
-    // Sauvegarde et mise à jour de l'affichage
-    sauvegarderStock();
+    sauvegarderDonnees();
     rafraichirTout();
-
-    // Reinitialisation des champs du formulaire
     document.getElementById('form-produit').reset();
 }
 
@@ -75,7 +71,7 @@ function supprimerProduit(id, event) {
     event.stopPropagation();
     if (confirm('Supprimer cet article du catalogue ?')) {
         catalogue = catalogue.filter(p => p.id !== id);
-        sauvegarderStock();
+        sauvegarderDonnees();
         rafraichirTout();
     }
 }
@@ -117,7 +113,7 @@ function afficherCatalogue(liste) {
     });
 }
 
-// Ajoute un article au ticket de caisse en cours
+// Ajoute un article au ticket de caisse
 function ajouterAuTicket(produit) {
     const prodCatalogue = catalogue.find(p => p.id === produit.id);
     if (!prodCatalogue || prodCatalogue.stock <= 0) {
@@ -128,7 +124,7 @@ function ajouterAuTicket(produit) {
     const existant = ticket.find(item => item.produit.id === produit.id);
     if (existant) {
         if (existant.quantite >= prodCatalogue.stock) {
-            alert("Stock suffisant atteint par rapport au stock dispo.");
+            alert("Stock insuffisant.");
             return;
         }
         existant.quantite++;
@@ -160,30 +156,42 @@ function afficherTicket() {
     document.getElementById('total-amount').innerText = total.toFixed(2) + ' €';
 }
 
-// Valide la vente et déduit le stock du catalogue
+// Valide la vente et enregistre la répartition par canal
 function validerVente() {
     if (ticket.length === 0) {
         alert('Le ticket est vide.');
         return;
     }
 
-    // Déduction des quantités vendues directement dans le catalogue
+    const canalActuel = document.getElementById('select-canal').value; // 'facture' ou 'black'
+    let totalVente = 0;
+
+    // Déduction des stocks et calcul du total de cette vente
     ticket.forEach(item => {
         const prod = catalogue.find(p => p.id === item.produit.id);
         if (prod) {
             prod.stock = Math.max(0, prod.stock - item.quantite);
         }
+        const prixU = obtenirPrixProduit(item.produit);
+        totalVente += (prixU * item.quantite);
     });
 
-    sauvegarderStock();
+    // Enregistrement de la vente dans l'historique
+    historiqueVentes.push({
+        date: new Date().toISOString(),
+        canal: canalActuel,
+        montant: totalVente,
+        articles: ticket.map(i => ({ nom: i.produit.nom, qte: i.quantite }))
+    });
+
+    sauvegarderDonnees();
     ticket = [];
     
-    // Rafraîchissement complet
     rafraichirTout();
-    alert('Vente enregistrée ! Le stock a été mis à jour.');
+    alert('Vente validée et enregistrée !');
 }
 
-// Centralise le rafraîchissement global de l'interface
+// Centralise le rafraîchissement global
 function rafraichirTout() {
     const query = document.getElementById('search-bar').value.toLowerCase().trim();
     const listeAffichee = query 
@@ -194,32 +202,52 @@ function rafraichirTout() {
     afficherTicket();
 }
 
-// Exporte le bilan des stocks sous forme de texte à copier
-function exporterStock() {
+// Exporte le bilan des stocks + le total Vendu en Facturé et en Cash
+function exporterStockEtVentes() {
+    let totalFacture = 0;
+    let totalCash = 0;
+
+    // Calcul des totaux par canal
+    historiqueVentes.forEach(v => {
+        if (v.canal === 'facture') {
+            totalFacture += v.montant;
+        } else if (v.canal === 'black') {
+            totalCash += v.montant;
+        }
+    });
+
+    let message = "📊 BILAN DE STOCK & VENTES :\n\n";
+
+    message += "📦 STOCK ACTUEL RESTANT :\n";
     if (catalogue.length === 0) {
-        alert("Le catalogue est vide.");
-        return;
+        message += "(Catalogue vide)\n";
+    } else {
+        catalogue.forEach(p => {
+            message += `- ${p.nom} : ${p.stock} restant(s)\n`;
+        });
     }
 
-    let message = "📦 ETAT DU STOCK CARTEC :\n\n";
-    catalogue.forEach(p => {
-        message += `- ${p.nom} : ${p.stock} restant(s)\n`;
-    });
+    message += "\n💰 TOTAL DES VENTES ENCAISSÉES :\n";
+    message += `- Facturé : ${totalFacture.toFixed(2)} €\n`;
+    message += `- Cash / Black : ${totalCash.toFixed(2)} €\n`;
+    message += `- TOTAL GÉNÉRAL : ${(totalFacture + totalCash).toFixed(2)} €\n`;
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(message).then(() => {
-            alert("Bilan de stock copié dans le presse-papier !");
+            alert("Bilan (Stock & Ventes) copié dans le presse-papier !");
         }).catch(() => alert(message));
     } else {
         alert(message);
     }
 }
 
-// Réinitialise complètement le catalogue
+// Réinitialise tout (stock et historique des ventes)
 function reinitialiserTout() {
-    if (confirm('Voulez-vous vraiment vider tout le catalogue ?')) {
-        localStorage.removeItem('cartec_stock_v6');
+    if (confirm('Voulez-vous vraiment TOUT réinitialiser (catalogue et historique des ventes) ?')) {
+        localStorage.removeItem('cartec_stock_v7');
+        localStorage.removeItem('cartec_ventes_v7');
         catalogue = [];
+        historiqueVentes = [];
         ticket = [];
         rafraichirTout();
     }
