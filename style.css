@@ -1,4 +1,4 @@
-* {
+** {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -50,12 +50,13 @@ main {
     padding: 0 1rem;
 }
 
+/* ONGLETS & AFFICHAGE */
 .tab-content {
-    display: none;
+    display: none !important;
 }
 
 .tab-content.active {
-    display: block;
+    display: block !important;
 }
 
 /* CAISSE */
@@ -153,7 +154,7 @@ main {
     margin-bottom: 1rem;
 }
 
-/* BARRE DE RECHERCHE DU STOCK */
+/* BARRE DE RECHERCHE STOCK GRAND FORMAT */
 .search-stock-wrapper {
     position: relative;
     display: flex;
