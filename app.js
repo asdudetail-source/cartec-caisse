@@ -16,8 +16,11 @@ function switchTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
     
-    document.getElementById('section-' + tabName).classList.add('active');
-    document.getElementById('tab-' + tabName).classList.add('active');
+    const targetSection = document.getElementById('section-' + tabName);
+    const targetTab = document.getElementById('tab-' + tabName);
+    
+    if (targetSection) targetSection.classList.add('active');
+    if (targetTab) targetTab.classList.add('active');
     
     renderAll();
 }
@@ -32,6 +35,8 @@ function renderAll() {
 /* CAISSE */
 function renderProducts() {
     const grid = document.getElementById('product-grid');
+    if (!grid) return;
+
     const clientType = document.getElementById('select-client').value;
     const searchQuery = document.getElementById('search-bar').value.toLowerCase();
     grid.innerHTML = '';
@@ -85,6 +90,8 @@ function addToCart(productId) {
 function renderCart() {
     const cartList = document.getElementById('cart-list');
     const totalEl = document.getElementById('cart-total');
+    if (!cartList || !totalEl) return;
+
     cartList.innerHTML = '';
     
     let total = 0;
@@ -142,6 +149,8 @@ function checkout() {
 /* GESTION DU STOCK */
 function renderStockTable() {
     const body = document.getElementById('stock-table-body');
+    if (!body) return;
+
     const searchInput = document.getElementById('search-stock-bar');
     const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
     
@@ -247,6 +256,8 @@ function deleteProduct(id) {
 /* HISTORIQUE ET BILAN */
 function renderHistoryTable() {
     const body = document.getElementById('history-table-body');
+    if (!body) return;
+
     body.innerHTML = '';
     salesHistory.forEach(s => {
         body.innerHTML += `
@@ -281,5 +292,5 @@ function resetAll() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    renderAll();
+    switchTab('caisse');
 });
