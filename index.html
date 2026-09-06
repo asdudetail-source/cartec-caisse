@@ -3,111 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gestion Stock & Caisse - L'As Du Détail</title>
+    <title>Caisse & Stock Cartec</title>
+    
+    <!-- Masquer la barre d'adresse sur iOS (Safari) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Caisse Cartec">
+    
+    <!-- Masquer la barre d'adresse sur Android / Chrome -->
+    <meta name="mobile-web-app-capable" content="yes">
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <header class="app-header">
-        <h1>L'As Du Détail — Caisse</h1>
-        <button id="btn-ouvrir-modal" class="btn-primary">+ Produit</button>
+    <header>
+        <h1>Caisse &amp; Stock Cartec</h1>
+        <nav>
+            <button id="tab-caisse" class="active" onclick="switchTab('caisse')">Caisse / Vente</button>
+            <button id="tab-stock" onclick="switchTab('stock')">Gestion Stock</button>
+            <button id="tab-historique" onclick="switchTab('historique')">Historique Ventes</button>
+        </nav>
     </header>
 
-    <main class="app-container">
-        <!-- Section Filtres & Recherche -->
-        <section class="controls-section">
-            <input type="text" id="search-bar" placeholder="Rechercher un produit..." autocomplete="off">
-            
-            <div class="select-group">
-                <div class="select-box">
-                    <label for="select-client">Tarif :</label>
-                    <select id="select-client">
-                        <option value="particulier">Particulier</option>
-                        <option value="pro">Professionnel</option>
-                    </select>
-                </div>
-                
-                <div class="select-box">
-                    <label for="select-canal">Canal :</label>
-                    <select id="select-canal">
-                        <option value="black">Cash / Black</option>
-                        <option value="facture">Facturé</option>
-                    </select>
-                </div>
-            </div>
-        </section>
-
-        <!-- Grille du Catalogue Produit -->
-        <section class="catalogue-section">
-            <h2>Catalogue <small>(Appui long pour gérer le stock/supprimer)</small></h2>
-            <div id="produits-grid" class="produits-grid">
-                <!-- Les cartes produits s'affichent ici -->
-            </div>
-        </section>
-
-        <!-- Panneau Ticket en cours & Actions -->
-        <section class="ticket-section">
-            <h2>Ticket en cours</h2>
-            <div id="ticket-items" class="ticket-items">
-                <!-- Les articles ajoutés s'affichent ici -->
-            </div>
-            
-            <div class="ticket-total">
-                <span>Total :</span>
-                <span id="total-amount">0.00 €</span>
-            </div>
-
-            <button id="btn-valider" class="btn-success btn-block">Valider la vente</button>
-        </section>
-
-        <!-- Historique des ventes -->
-        <section class="historique-section">
-            <h2>Historique des ventes</h2>
-            <div id="historique-ventes" class="historique-list">
-                <!-- L'historique s'affiche ici -->
-            </div>
-        </section>
-
-        <!-- Actions de gestion globale -->
-        <section class="global-actions">
-            <button id="btn-export" class="btn-secondary btn-block">📊 Copier le Bilan & Stock</button>
-            <button id="btn-reset" class="btn-danger btn-block">⚠️ Réinitialiser l'application</button>
-        </section>
-    </main>
-
-    <!-- Modal d'ajout de produit -->
-    <div id="modal-produit" class="modal">
-        <div class="modal-content">
-            <h3>Ajouter un nouvel article</h3>
-            <form id="form-produit">
-                <div class="form-group">
-                    <label for="add-nom">Nom de l'article *</label>
-                    <input type="text" id="add-nom" required placeholder="Ex: Magic Wheel Cleaner">
+    <main>
+        <!-- SECTION CAISSE -->
+        <section id="section-caisse" class="tab-content active">
+            <div class="caisse-container">
+                <div class="catalog-panel">
+                    <h2>Produits disponibles</h2>
+                    <div id="product-grid" class="product-grid"></div>
                 </div>
 
-                <div class="form-group">
-                    <label for="add-stock">Stock initial</label>
-                    <input type="number" id="add-stock" placeholder="0" min="0" onfocus="this.select()">
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="add-part">Prix Particulier (€)</label>
-                        <input type="number" id="add-part" step="0.01" placeholder="0.00" min="0" onfocus="this.select()">
-                    </div>
-                    <div class="form-group">
-                        <label for="add-pro">Prix Pro (€)</label>
-                        <input type="number" id="add-pro" step="0.01" placeholder="0.00" min="0" onfocus="this.select()">
+                <div class="cart-panel">
+                    <h2>Ticket de caisse</h2>
+                    <ul id="cart-list" class="cart-list"></ul>
+                    <div class="cart-summary">
+                        <div class="total-row">
+                            <span>Total :</span>
+                            <span id="cart-total">0.00 €</span>
+                        </div>
+                        <button class="btn-primary" onclick="checkout()">Valider la vente</button>
+                        <button class="btn-danger" onclick="clearCart()">Vider le panier</button>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <div class="modal-actions">
-                    <button type="submit" class="btn-success" style="flex: 1;">Enregistrer</button>
-                    <button type="button" id="btn-fermer-modal" class="btn-secondary">Annuler</button>
+        <!-- SECTION GESTION DU STOCK -->
+        <section id="section-stock" class="tab-content">
+            <h2>Inventaire des Produits</h2>
+            <form id="add-product-form" onsubmit="handleAddProduct(event)">
+                <h3>Ajouter / Modifier un produit</h3>
+                <div class="form-group">
+                    <input type="text" id="prod-name" placeholder="Nom du produit" required>
+                    <input type="number" id="prod-price" placeholder="Prix (€)" step="0.01" required>
+                    <input type="number" id="prod-stock" placeholder="Quantité en stock" required>
+                    <button type="submit" class="btn-success">Enregistrer produit</button>
                 </div>
             </form>
-        </div>
-    </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nom du produit</th>
+                        <th>Prix unitaire</th>
+                        <th>Quantité disponible</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="stock-table-body"></tbody>
+            </table>
+        </section>
+
+        <!-- SECTION HISTORIQUE -->
+        <section id="section-historique" class="tab-content">
+            <h2>Historique des Ventes</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date &amp; Heure</th>
+                        <th>Détail des articles</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="history-table-body"></tbody>
+            </table>
+        </section>
+    </main>
 
     <script src="app.js"></script>
 </body>
