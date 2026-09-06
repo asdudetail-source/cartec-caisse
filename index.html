@@ -14,6 +14,7 @@
             <form id="form-produit" onsubmit="ajouterProduitManuel(event)">
                 <input type="text" id="add-nom" placeholder="Nom du produit" required>
                 <input type="number" id="add-stock" placeholder="Stock disponible" min="0" required>
+                <input type="number" step="0.01" id="add-black" placeholder="Prix Black (€)" required>
                 <input type="number" step="0.01" id="add-pro" placeholder="Prix Pro HT / Net (€)" required>
                 <input type="number" step="0.01" id="add-part" placeholder="Prix Particulier TTC (€)" required>
                 <button type="submit" class="btn-ajouter">Ajouter au catalogue</button>
