@@ -1,4 +1,4 @@
-let catalogue = [];
+letlet catalogue = [];
 let ticket = [];
 let historiqueVentes = [];
 
