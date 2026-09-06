@@ -161,6 +161,66 @@ main {
     margin-bottom: 1.2rem;
 }
 
+/* FORMULAIRE GESTION STOCK */
+#add-product-form {
+    background: #ffffff;
+    padding: 1.2rem;
+    border-radius: 14px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+#add-product-form h3 {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    color: #1c1c1e;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.input-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.input-field label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #6c6c70;
+    text-transform: uppercase;
+}
+
+.input-field input {
+    padding: 0.75rem;
+    border: 1px solid #d1d1d6;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    background-color: #f9f9fb;
+    width: 100%;
+}
+
+.input-field input:focus {
+    border-color: #007aff;
+    background-color: #ffffff;
+    outline: none;
+}
+
+.form-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.form-actions button {
+    width: auto;
+    padding: 0.8rem 1.5rem;
+}
+
 /* BARRE DE RECHERCHE STOCK GRAND FORMAT */
 .search-stock-wrapper {
     position: relative;
@@ -233,30 +293,6 @@ main {
 }
 
 /* TABLEAUX DE GESTION & HISTORIQUE */
-#add-product-form {
-    background: white;
-    padding: 1.2rem;
-    border-radius: 14px;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-.form-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.8rem;
-}
-
-.form-group input {
-    flex: 1;
-    min-width: 120px;
-    padding: 0.75rem;
-    border: 1px solid #d1d1d6;
-    border-radius: 10px;
-    font-size: 0.95rem;
-}
-
 .data-table {
     width: 100%;
     border-collapse: collapse;
