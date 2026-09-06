@@ -1,3 +1,9 @@
+// Force le vidage de la mémoire au chargement si du vieux code traîne
+if (!localStorage.getItem('cartec_v2_clean')) {
+    localStorage.clear();
+    localStorage.setItem('cartec_v2_clean', 'true');
+}
+
 let catalogue = JSON.parse(localStorage.getItem('cartec_stock')) || [];
 let ticket = [];
 
@@ -45,7 +51,7 @@ function calculerPrix(p) {
     const canal = document.getElementById('select-canal').value;
 
     if (canal === 'black') {
-        return p.prix_pro; // Tarif Pro appliqué sur le canal Black
+        return p.prix_pro;
     }
     return client === 'pro' ? p.prix_pro : p.prix_particulier;
 }
@@ -55,7 +61,7 @@ function afficherProduits(liste) {
     grid.innerHTML = '';
 
     if (liste.length === 0) {
-        grid.innerHTML = '<p style="grid-column: 1/-1; color: #8e8e93; text-align: center; padding: 20px;">Aucun produit dans le catalogue.<br>Ajoutez des articles via le formulaire.</p>';
+        grid.innerHTML = '<p style="grid-column: 1/-1; color: #8e8e93; text-align: center; padding: 30px;">Le catalogue est vide.<br>Ajoutez des articles via le formulaire à gauche.</p>';
         return;
     }
 
@@ -66,7 +72,7 @@ function afficherProduits(liste) {
         card.innerHTML = `
             <span class="btn-suppr" onclick="supprimerProduit('${p.id}', event)">×</span>
             <span class="product-title">${p.nom}</span>
-            <span class="product-stock">Stock: ${p.stock}</span>
+            <span class="product-stock" style="color: ${p.stock <= 1 ? '#ff3b30' : '#8e8e93'}; font-weight: ${p.stock <= 1 ? 'bold' : 'normal'}">Stock: ${p.stock}</span>
             <div class="product-price">${prix.toFixed(2)} €</div>
         `;
         card.onclick = () => ajouterAuTicket(p);
@@ -76,11 +82,15 @@ function afficherProduits(liste) {
 
 function ajouterAuTicket(produit) {
     if (produit.stock <= 0) {
-        alert("Stock épuisé !");
+        alert("Stock épuisé pour cet article !");
         return;
     }
     const existant = ticket.find(item => item.produit.id === produit.id);
     if (existant) {
+        if (existant.quantite >= produit.stock) {
+            alert("Impossible d'ajouter plus que le stock disponible.");
+            return;
+        }
         existant.quantite++;
     } else {
         ticket.push({ produit: produit, quantite: 1 });
@@ -133,8 +143,26 @@ function filtrerProduits() {
     afficherProduits(filtre);
 }
 
+function exporterStockRepresentant() {
+    if (catalogue.length === 0) {
+        alert("Le catalogue est vide.");
+        return;
+    }
+
+    let message = "📦 ETAT DU STOCK CARTEC :\n\n";
+    catalogue.forEach(p => {
+        message += `- ${p.nom} : ${p.stock} restant(s)\n`;
+    });
+
+    navigator.clipboard.writeText(message).then(() => {
+        alert("Le bilan de stock a été copié dans votre presse-papier !\nVous pouvez le coller directement dans un message pour votre représentant.");
+    }).catch(() => {
+        alert(message);
+    });
+}
+
 function reinitialiserTout() {
-    if (confirm('Effacer tous les produits enregistrés ?')) {
+    if (confirm('Êtes-vous sûr de vouloir tout effacer et vider le catalogue ?')) {
         localStorage.removeItem('cartec_stock');
         catalogue = [];
         ticket = [];
