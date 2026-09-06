@@ -198,7 +198,7 @@ function editProduct(id) {
     const submitBtn = document.getElementById('submit-btn');
     submitBtn.innerText = "Mettre à jour l'article";
 
-    document.getElementById('cancel-edit-btn').style.display = "inline-block";
+    document.getElementById('cancel-edit-btn').style.display = "inline-flex";
     document.getElementById('add-product-form').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -208,7 +208,7 @@ function cancelEdit() {
     document.getElementById('form-title').innerText = "+ Ajouter un produit";
     
     const submitBtn = document.getElementById('submit-btn');
-    submitBtn.innerText = "Enregistrer";
+    submitBtn.innerText = "Mettre à jour l'article";
 
     document.getElementById('cancel-edit-btn').style.display = "none";
 }
