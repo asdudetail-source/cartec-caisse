@@ -1,10 +1,7 @@
-// Force le vidage de la mémoire au chargement si du vieux code traîne
-if (!localStorage.getItem('cartec_v2_clean')) {
-    localStorage.clear();
-    localStorage.setItem('cartec_v2_clean', 'true');
-}
+// Forcer le vidage du cache corrompu
+localStorage.clear();
 
-let catalogue = JSON.parse(localStorage.getItem('cartec_stock')) || [];
+let catalogue = JSON.parse(localStorage.getItem('cartec_stock_v3')) || [];
 let ticket = [];
 
 window.onload = function() {
@@ -34,7 +31,7 @@ function ajouterProduitManuel(event) {
 }
 
 function sauvegarderStock() {
-    localStorage.setItem('cartec_stock', JSON.stringify(catalogue));
+    localStorage.setItem('cartec_stock_v3', JSON.stringify(catalogue));
 }
 
 function supprimerProduit(id, event) {
@@ -61,7 +58,7 @@ function afficherProduits(liste) {
     grid.innerHTML = '';
 
     if (liste.length === 0) {
-        grid.innerHTML = '<p style="grid-column: 1/-1; color: #8e8e93; text-align: center; padding: 30px;">Le catalogue est vide.<br>Ajoutez des articles via le formulaire à gauche.</p>';
+        grid.innerHTML = '<p style="grid-column: 1/-1; color: #8e8e93; text-align: center; padding: 30px;">Le catalogue est totalement vide.<br>Ajoutez vos articles à gauche.</p>';
         return;
     }
 
@@ -72,7 +69,7 @@ function afficherProduits(liste) {
         card.innerHTML = `
             <span class="btn-suppr" onclick="supprimerProduit('${p.id}', event)">×</span>
             <span class="product-title">${p.nom}</span>
-            <span class="product-stock" style="color: ${p.stock <= 1 ? '#ff3b30' : '#8e8e93'}; font-weight: ${p.stock <= 1 ? 'bold' : 'normal'}">Stock: ${p.stock}</span>
+            <span class="product-stock" style="color: ${p.stock <= 1 ? '#ff3b30' : '#8e8e93'}">Stock: ${p.stock}</span>
             <div class="product-price">${prix.toFixed(2)} €</div>
         `;
         card.onclick = () => ajouterAuTicket(p);
@@ -82,13 +79,13 @@ function afficherProduits(liste) {
 
 function ajouterAuTicket(produit) {
     if (produit.stock <= 0) {
-        alert("Stock épuisé pour cet article !");
+        alert("Stock épuisé !");
         return;
     }
     const existant = ticket.find(item => item.produit.id === produit.id);
     if (existant) {
         if (existant.quantite >= produit.stock) {
-            alert("Impossible d'ajouter plus que le stock disponible.");
+            alert("Stock insuffisant.");
             return;
         }
         existant.quantite++;
@@ -155,15 +152,15 @@ function exporterStockRepresentant() {
     });
 
     navigator.clipboard.writeText(message).then(() => {
-        alert("Le bilan de stock a été copié dans votre presse-papier !\nVous pouvez le coller directement dans un message pour votre représentant.");
+        alert("Bilan de stock copié ! Vous pouvez le coller directement dans votre message pour le représentant.");
     }).catch(() => {
         alert(message);
     });
 }
 
 function reinitialiserTout() {
-    if (confirm('Êtes-vous sûr de vouloir tout effacer et vider le catalogue ?')) {
-        localStorage.removeItem('cartec_stock');
+    if (confirm('Vider complètement le catalogue ?')) {
+        localStorage.clear();
         catalogue = [];
         ticket = [];
         rafraichirTout();
