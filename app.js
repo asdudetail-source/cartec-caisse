@@ -6,54 +6,85 @@ document.addEventListener('DOMContentLoaded', function() {
     chargerDonnees();
     rafraichirTout();
 
-    // 1. Ouverture/Fermeture Modale Produit
+    // 1. Gestion Ouverture / Fermeture Modale
     const modal = document.getElementById('modal-produit');
     const btnOuvrir = document.getElementById('btn-ouvrir-modal');
     const btnFermer = document.getElementById('btn-fermer-modal');
 
     if (btnOuvrir && modal) {
-        btnOuvrir.onclick = function(e) {
+        btnOuvrir.addEventListener('click', function(e) {
             e.preventDefault();
             modal.classList.add('active');
-        };
+        });
     }
 
     if (btnFermer && modal) {
-        btnFermer.onclick = function(e) {
+        btnFermer.addEventListener('click', function(e) {
             e.preventDefault();
             modal.classList.remove('active');
-        };
+        });
     }
 
-    // 2. Soumission du Formulaire d'ajout
+    // 2. Gestion de la soumission du formulaire d'ajout
     const formProduit = document.getElementById('form-produit');
     if (formProduit) {
-        formProduit.onsubmit = function(e) {
-            e.preventDefault();
-            ajouterProduit();
+        formProduit.addEventListener('submit', function(e) {
+            e.preventDefault(); // Empêche le rechargement de la page
+            
+            const elNom = document.getElementById('add-nom');
+            const elStock = document.getElementById('add-stock');
+            const elPro = document.getElementById('add-pro');
+            const elPart = document.getElementById('add-part');
+
+            if (!elNom) return;
+
+            const nom = elNom.value.trim();
+            const stock = elStock.value !== '' ? parseInt(elStock.value, 10) : 0;
+            const prixPro = elPro.value !== '' ? parseFloat(elPro.value) : 0;
+            const prixParticulier = elPart.value !== '' ? parseFloat(elPart.value) : 0;
+
+            if (!nom) {
+                alert("Veuillez saisir un nom d'article.");
+                return;
+            }
+
+            const nouveauProduit = {
+                id: Date.now().toString(),
+                nom: nom,
+                stock: isNaN(stock) ? 0 : stock,
+                prix_pro: isNaN(prixPro) ? 0 : prixPro,
+                prix_particulier: isNaN(prixParticulier) ? 0 : prixParticulier
+            };
+
+            catalogue.push(nouveauProduit);
+            sauvegarderDonnees();
+            rafraichirTout();
+
+            // Reinitialisation et fermeture
+            formProduit.reset();
             if (modal) modal.classList.remove('active');
-        };
+        });
     }
 
     // 3. Filtres & Recherche
     const selectClient = document.getElementById('select-client');
-    if (selectClient) selectClient.onchange = rafraichirTout;
+    if (selectClient) selectClient.addEventListener('change', rafraichirTout);
 
     const selectCanal = document.getElementById('select-canal');
-    if (selectCanal) selectCanal.onchange = rafraichirTout;
+    if (selectCanal) selectCanal.addEventListener('change', rafraichirTout);
 
     const searchBar = document.getElementById('search-bar');
-    if (searchBar) searchBar.oninput = rafraichirTout;
+    if (searchBar) searchBar.addEventListener('input', rafraichirTout);
 
-    // 4. Boutons principaux
+    // 4. Boutons d'actions globales
     const btnValider = document.getElementById('btn-valider');
-    if (btnValider) btnValider.onclick = validerVente;
+    if (btnValider) btnValider.addEventListener('click', validerVente);
 
     const btnExport = document.getElementById('btn-export');
-    if (btnExport) btnExport.onclick = exporterStockEtVentes;
+    if (btnExport) btnExport.addEventListener('click', exporterStockEtVentes);
 
     const btnReset = document.getElementById('btn-reset');
-    if (btnReset) btnReset.onclick = reinitialiserTout;
+    if (btnReset) btnReset.addEventListener('click', reinitialiserTout);
 });
 
 function chargerDonnees() {
@@ -73,39 +104,6 @@ function sauvegarderDonnees() {
     localStorage.setItem('cartec_ventes_v11', JSON.stringify(historiqueVentes));
 }
 
-function ajouterProduit() {
-    const elNom = document.getElementById('add-nom');
-    const elStock = document.getElementById('add-stock');
-    const elPro = document.getElementById('add-pro');
-    const elPart = document.getElementById('add-part');
-
-    if (!elNom) return;
-
-    const nom = elNom.value.trim();
-    const stock = elStock.value !== '' ? parseInt(elStock.value) : 0;
-    const prixPro = elPro.value !== '' ? parseFloat(elPro.value) : 0;
-    const prixParticulier = elPart.value !== '' ? parseFloat(elPart.value) : 0;
-
-    if (!nom) {
-        alert("Veuillez saisir un nom d'article.");
-        return;
-    }
-
-    const nouveauProduit = {
-        id: Date.now().toString(),
-        nom: nom,
-        stock: isNaN(stock) ? 0 : stock,
-        prix_pro: isNaN(prixPro) ? 0 : prixPro,
-        prix_particulier: isNaN(prixParticulier) ? 0 : prixParticulier
-    };
-
-    catalogue.push(nouveauProduit);
-    sauvegarderDonnees();
-    rafraichirTout();
-
-    document.getElementById('form-produit').reset();
-}
-
 function obtenirPrixProduit(p) {
     const selectClient = document.getElementById('select-client');
     const typeClient = selectClient ? selectClient.value : 'particulier';
@@ -119,7 +117,7 @@ function afficherCatalogue(liste) {
     grid.innerHTML = '';
 
     if (liste.length === 0) {
-        grid.innerHTML = '<p style="grid-column: 1/-1; color: var(--text-secondary); text-align: center; padding: 20px;">Aucun article dans le catalogue.</p>';
+        grid.innerHTML = '<p style="grid-column: 1/-1; color: var(--text-secondary); text-align: center; padding: 20px;">Aucun article disponible dans le catalogue.</p>';
         return;
     }
 
@@ -184,7 +182,7 @@ function ouvrirMenuOptionProduit(produit) {
     if (choix) {
         const nouveauStock = prompt(`Nouveau stock pour "${produit.nom}" :`, produit.stock);
         if (nouveauStock !== null) {
-            const stockInt = parseInt(nouveauStock);
+            const stockInt = parseInt(nouveauStock, 10);
             if (!isNaN(stockInt) && stockInt >= 0) {
                 produit.stock = stockInt;
                 sauvegarderDonnees();
