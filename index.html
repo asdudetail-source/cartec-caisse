@@ -5,12 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Caisse & Stock Cartec</title>
     
-    <!-- Configuration plein écran Safari / iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Cartec Caisse">
-
-    <!-- Configuration plein écran Chrome / Android -->
     <meta name="mobile-web-app-capable" content="yes">
 
     <link rel="stylesheet" href="style.css">
@@ -33,7 +30,6 @@
                 <div class="catalog-panel">
                     <h2>Catalogue</h2>
                     
-                    <!-- Filtres de vente : Tarif & Canal -->
                     <div class="options-vente">
                         <select id="select-client" onchange="renderProducts()">
                             <option value="particulier">Tarif Particulier</option>
@@ -45,7 +41,7 @@
                         </select>
                     </div>
 
-                    <input type="text" id="search-bar" placeholder="Rechercher un article..." oninput="renderProducts()">
+                    <input type="text" id="search-bar" placeholder="🔍 Rechercher un article..." oninput="renderProducts()">
 
                     <div id="product-grid" class="product-grid"></div>
                 </div>
@@ -72,7 +68,7 @@
                 <h3>+ Ajouter / Modifier un produit</h3>
                 <div class="form-group">
                     <input type="text" id="prod-name" placeholder="Nom du produit" required>
-                    <input type="number" id="prod-stock" placeholder="Stock disponible" min="0" required>
+                    <input type="number" id="prod-stock" placeholder="Stock dispo" min="0" required>
                     <input type="number" id="prod-price-pro" placeholder="Prix Pro (€)" step="0.01" required>
                     <input type="number" id="prod-price-part" placeholder="Prix Particulier (€)" step="0.01" required>
                     <button type="submit" class="btn-success">Enregistrer produit</button>
