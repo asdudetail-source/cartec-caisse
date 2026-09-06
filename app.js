@@ -1,7 +1,4 @@
-// Forcer le vidage du cache corrompu
-localStorage.clear();
-
-let catalogue = JSON.parse(localStorage.getItem('cartec_stock_v3')) || [];
+let catalogue = JSON.parse(localStorage.getItem('cartec_stock_v4')) || [];
 let ticket = [];
 
 window.onload = function() {
@@ -13,6 +10,7 @@ function ajouterProduitManuel(event) {
     
     const nom = document.getElementById('add-nom').value.trim();
     const stock = parseInt(document.getElementById('add-stock').value) || 0;
+    const prixBlack = parseFloat(document.getElementById('add-black').value) || 0;
     const prixPro = parseFloat(document.getElementById('add-pro').value) || 0;
     const prixParticulier = parseFloat(document.getElementById('add-part').value) || 0;
 
@@ -20,6 +18,7 @@ function ajouterProduitManuel(event) {
         id: Date.now().toString(),
         nom: nom,
         stock: stock,
+        prix_black: prixBlack,
         prix_pro: prixPro,
         prix_particulier: prixParticulier
     };
@@ -31,7 +30,7 @@ function ajouterProduitManuel(event) {
 }
 
 function sauvegarderStock() {
-    localStorage.setItem('cartec_stock_v3', JSON.stringify(catalogue));
+    localStorage.setItem('cartec_stock_v4', JSON.stringify(catalogue));
 }
 
 function supprimerProduit(id, event) {
@@ -47,9 +46,11 @@ function calculerPrix(p) {
     const client = document.getElementById('select-client').value;
     const canal = document.getElementById('select-canal').value;
 
+    // Priorité au tarif Black si sélectionné
     if (canal === 'black') {
-        return p.prix_pro;
+        return p.prix_black;
     }
+    // Sinon tarif Pro ou Particulier selon le client
     return client === 'pro' ? p.prix_pro : p.prix_particulier;
 }
 
