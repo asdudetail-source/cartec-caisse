@@ -1,40 +1,47 @@
-let catalogue = [];
+// Charge le stock sauvegardé dans l'iPad, ou une liste vide
+let catalogue = JSON.parse(localStorage.getItem('cartec_stock')) || [];
 let ticket = [];
 
 window.onload = function() {
-    fetch('produits.csv')
-        .then(response => response.text())
-        .then(data => {
-            parseCSV(data);
-            afficherProduits(catalogue);
-        });
+    afficherProduits(catalogue);
 };
 
-function parseCSV(text) {
-    const lines = text.trim().split('\n');
-    catalogue = [];
+function ajouterProduitManuel(event) {
+    event.preventDefault();
+    
+    const id = document.getElementById('add-ref').value.trim();
+    const nom = document.getElementById('add-nom').value.trim();
+    const stock = parseInt(document.getElementById('add-stock').value) || 0;
+    const paNet = parseFloat(document.getElementById('add-pa').value) || 0;
 
-    lines.forEach(line => {
-        const cols = line.split(line.includes(';') ? ';' : ',').map(c => c.replace(/"/g, '').trim());
-        
-        const codeArt = cols[0];
-        const nom = cols[1];
-        
-        if (codeArt && nom && !codeArt.toLowerCase().includes('numéro') && !codeArt.toLowerCase().includes('devis')) {
-            const paNet = parseFloat(cols[5]?.replace('€', '').replace(',', '.').trim()) || 0;
-            const stock = parseInt(cols[7]) || 1;
-            
-            catalogue.push({
-                id: codeArt,
-                nom: nom,
-                stock: stock,
-                pa_net: paNet,
-                prix_black: paNet * 1.3,
-                prix_pro_ttc: paNet * 1.35,
-                prix_particulier_ttc: paNet * 1.5
-            });
-        }
-    });
+    // Calcul automatique des tarifs
+    const nouveauProduit = {
+        id: id,
+        nom: nom,
+        stock: stock,
+        pa_net: paNet,
+        prix_black: paNet * 1.30,       // Marge Black +30%
+        prix_pro_ttc: paNet * 1.35,    // Marge Pro +35%
+        prix_particulier_ttc: paNet * 1.50 // Marge Particulier +50%
+    };
+
+    catalogue.push(nouveauProduit);
+    sauvegarderStock();
+    afficherProduits(catalogue);
+    document.getElementById('form-produit').reset();
+}
+
+function sauvegarderStock() {
+    localStorage.setItem('cartec_stock', JSON.stringify(catalogue));
+}
+
+function supprimerProduit(id, event) {
+    event.stopPropagation();
+    if (confirm('Supprimer ce produit du catalogue ?')) {
+        catalogue = catalogue.filter(p => p.id !== id);
+        sauvegarderStock();
+        afficherProduits(catalogue);
+    }
 }
 
 function calculerPrix(p) {
@@ -51,7 +58,7 @@ function afficherProduits(liste) {
     grid.innerHTML = '';
 
     if (liste.length === 0) {
-        grid.innerHTML = '<p style="grid-column: 1/-1; color: red;">Aucun produit chargé.</p>';
+        grid.innerHTML = '<p style="grid-column: 1/-1; color: #999;">Aucun produit enregistré. Utilisez le formulaire à gauche pour en ajouter.</p>';
         return;
     }
 
@@ -60,6 +67,7 @@ function afficherProduits(liste) {
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
+            <span class="btn-suppr" onclick="supprimerProduit('${p.id}', event)">×</span>
             <strong>${p.nom}</strong><br>
             <small style="color: #666;">Réf: ${p.id} | Stock: ${p.stock}</small><br>
             <b style="color: #007aff; font-size: 16px;">${prix.toFixed(2)} €</b>
@@ -70,6 +78,10 @@ function afficherProduits(liste) {
 }
 
 function ajouterAuTicket(produit) {
+    if (produit.stock <= 0) {
+        alert("Stock épuisé pour ce produit !");
+        return;
+    }
     const existant = ticket.find(item => item.produit.id === produit.id);
     if (existant) {
         existant.quantite++;
@@ -97,7 +109,6 @@ function rafraichirTicket() {
     });
 
     document.getElementById('total-amount').innerText = total.toFixed(2) + ' €';
-    afficherProduits(catalogue);
 }
 
 function validerVente() {
@@ -108,13 +119,23 @@ function validerVente() {
         if (p) p.stock -= item.quantite;
     });
 
-    alert('Vente validée !');
+    sauvegarderStock();
+    alert('Vente effectuée ! Le stock a été décrémenté.');
     ticket = [];
     rafraichirTicket();
+    afficherProduits(catalogue);
 }
 
 function filtrerProduits() {
     const q = document.getElementById('search-bar').value.toLowerCase();
     const filtre = catalogue.filter(p => p.nom.toLowerCase().includes(q) || p.id.toLowerCase().includes(q));
     afficherProduits(filtre);
+}
+
+function reinitialiserTout() {
+    if (confirm('Attention, cela va effacer TOUS vos produits enregistrés !')) {
+        localStorage.removeItem('cartec_stock');
+        catalogue = [];
+        afficherProduits(catalogue);
+    }
 }
