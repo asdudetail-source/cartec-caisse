@@ -1,14 +1,14 @@
 :root {
-    --bg-primary: #000000;
-    --bg-card: #1c1c1e;
-    --bg-input: #2c2c2e;
-    --border-color: #3a3a3c;
-    --text-primary: #ffffff;
-    --text-secondary: #8e8e93;
-    --accent-blue: #0a84ff;
-    --accent-green: #30d158;
-    --accent-red: #ff453a;
-    --accent-orange: #ff9f0a;
+    --bg-primary: #f2f2f7;
+    --bg-card: #ffffff;
+    --bg-input: #e5e5ea;
+    --border-color: #d1d1d6;
+    --text-primary: #000000;
+    --text-secondary: #6c6c70;
+    --accent-blue: #007aff;
+    --accent-green: #34c759;
+    --accent-red: #ff3b30;
+    --accent-orange: #ff9500;
 }
 
 * {
@@ -84,7 +84,7 @@ input[type="number"],
 select {
     width: 100%;
     padding: 12px;
-    background-color: var(--bg-input);
+    background-color: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 10px;
     color: var(--text-primary);
@@ -143,6 +143,7 @@ h2 small {
     min-height: 90px;
     user-select: none;
     cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .product-title {
@@ -158,11 +159,12 @@ h2 small {
     border-radius: 4px;
     display: inline-block;
     margin-bottom: 8px;
+    font-weight: 600;
 }
 
-.stock-high { background: rgba(48, 209, 88, 0.2); color: var(--accent-green); }
-.stock-low { background: rgba(255, 159, 10, 0.2); color: var(--accent-orange); }
-.stock-out { background: rgba(255, 69, 58, 0.2); color: var(--accent-red); }
+.stock-high { background: rgba(52, 199, 89, 0.15); color: #248a3d; }
+.stock-low { background: rgba(255, 149, 0, 0.15); color: #c67300; }
+.stock-out { background: rgba(255, 59, 48, 0.15); color: #d70015; }
 
 .product-price {
     font-size: 16px;
@@ -176,6 +178,7 @@ h2 small {
     border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .ticket-items {
@@ -211,6 +214,7 @@ h2 small {
     border: 1px solid var(--border-color);
     border-radius: 10px;
     padding: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .tag-canal {
@@ -220,8 +224,8 @@ h2 small {
     font-weight: bold;
 }
 
-.tag-black { background: rgba(255, 69, 58, 0.2); color: var(--accent-red); }
-.tag-facture { background: rgba(10, 132, 255, 0.2); color: var(--accent-blue); }
+.tag-black { background: rgba(255, 59, 48, 0.15); color: #d70015; }
+.tag-facture { background: rgba(0, 122, 255, 0.15); color: #0051a8; }
 
 /* Global Actions */
 .global-actions {
@@ -238,7 +242,7 @@ h2 small {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.4);
     display: none;
     align-items: center;
     justify-content: center;
@@ -256,6 +260,7 @@ h2 small {
     border-radius: 14px;
     width: 90%;
     max-width: 420px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
 
 .modal-content h3 {
