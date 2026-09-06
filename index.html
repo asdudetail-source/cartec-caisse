@@ -76,8 +76,11 @@
                 </div>
             </form>
 
-            <!-- BARRE DE RECHERCHE DANS LE STOCK -->
-            <input type="text" id="search-stock-bar" placeholder="🔍 Rechercher un produit à modifier ou consulter..." oninput="renderStockTable()">
+            <!-- BARRE DE RECHERCHE DU STOCK -->
+            <div class="search-stock-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-stock-bar" placeholder="Rechercher un produit à modifier ou consulter..." oninput="renderStockTable()">
+            </div>
 
             <table class="data-table">
                 <thead>
