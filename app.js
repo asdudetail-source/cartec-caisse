@@ -1,4 +1,4 @@
-let catalogue = [];
+letlet catalogue = [];
 let ticket = [];
 let historiqueVentes = [];
 
@@ -21,20 +21,20 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function chargerDonnees() {
-    const dataStock = localStorage.getItem('cartec_stock_v9');
+    const dataStock = localStorage.getItem('cartec_stock_v10');
     if (dataStock) {
         try { catalogue = JSON.parse(dataStock); } catch(e) { catalogue = []; }
     }
 
-    const dataVentes = localStorage.getItem('cartec_ventes_v9');
+    const dataVentes = localStorage.getItem('cartec_ventes_v10');
     if (dataVentes) {
         try { historiqueVentes = JSON.parse(dataVentes); } catch(e) { historiqueVentes = []; }
     }
 }
 
 function sauvegarderDonnees() {
-    localStorage.setItem('cartec_stock_v9', JSON.stringify(catalogue));
-    localStorage.setItem('cartec_ventes_v9', JSON.stringify(historiqueVentes));
+    localStorage.setItem('cartec_stock_v10', JSON.stringify(catalogue));
+    localStorage.setItem('cartec_ventes_v10', JSON.stringify(historiqueVentes));
 }
 
 function ajouterProduit() {
@@ -308,8 +308,8 @@ function exporterStockEtVentes() {
 
 function reinitialiserTout() {
     if (confirm('Voulez-vous vraiment TOUT réinitialiser (catalogue et historique des ventes) ?')) {
-        localStorage.removeItem('cartec_stock_v9');
-        localStorage.removeItem('cartec_ventes_v9');
+        localStorage.removeItem('cartec_stock_v10');
+        localStorage.removeItem('cartec_ventes_v10');
         catalogue = [];
         historiqueVentes = [];
         ticket = [];
