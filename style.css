@@ -150,7 +150,7 @@ function renderStockTable() {
     const filteredStock = stock.filter(p => p.name.toLowerCase().includes(searchQuery));
 
     if (filteredStock.length === 0) {
-        body.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #8e8e93; padding: 1rem;">Aucun produit trouvé</td></tr>`;
+        body.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #8e8e93; padding: 1.2rem;">Aucun produit trouvé</td></tr>`;
         return;
     }
 
