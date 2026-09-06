@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     chargerDonnees();
     rafraichirTout();
 
-    // 1. Gestion Ouverture/Fermeture Modale Produit
+    // 1. Ouverture/Fermeture Modale Produit
     const modal = document.getElementById('modal-produit');
     const btnOuvrir = document.getElementById('btn-ouvrir-modal');
     const btnFermer = document.getElementById('btn-fermer-modal');
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // 3. Changement des filtres & barre de recherche
+    // 3. Filtres & Recherche
     const selectClient = document.getElementById('select-client');
     if (selectClient) selectClient.onchange = rafraichirTout;
 
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchBar = document.getElementById('search-bar');
     if (searchBar) searchBar.oninput = rafraichirTout;
 
-    // 4. Boutons d'action
+    // 4. Boutons principaux
     const btnValider = document.getElementById('btn-valider');
     if (btnValider) btnValider.onclick = validerVente;
 
@@ -82,9 +82,9 @@ function ajouterProduit() {
     if (!elNom) return;
 
     const nom = elNom.value.trim();
-    const stock = parseInt(elStock ? elStock.value : 0) || 0;
-    const prixPro = parseFloat(elPro ? elPro.value : 0) || 0;
-    const prixParticulier = parseFloat(elPart ? elPart.value : 0) || 0;
+    const stock = elStock.value !== '' ? parseInt(elStock.value) : 0;
+    const prixPro = elPro.value !== '' ? parseFloat(elPro.value) : 0;
+    const prixParticulier = elPart.value !== '' ? parseFloat(elPart.value) : 0;
 
     if (!nom) {
         alert("Veuillez saisir un nom d'article.");
@@ -94,9 +94,9 @@ function ajouterProduit() {
     const nouveauProduit = {
         id: Date.now().toString(),
         nom: nom,
-        stock: stock,
-        prix_pro: prixPro,
-        prix_particulier: prixParticulier
+        stock: isNaN(stock) ? 0 : stock,
+        prix_pro: isNaN(prixPro) ? 0 : prixPro,
+        prix_particulier: isNaN(prixParticulier) ? 0 : prixParticulier
     };
 
     catalogue.push(nouveauProduit);
@@ -309,7 +309,7 @@ function afficherHistoriqueVentes() {
                 <span><b>Vente #${historiqueVentes.length - index}</b> <small>(${v.heure})</small></span>
                 <span class="tag-canal ${canalClass}">${canalLabel}</span>
             </div>
-            <div style="margin-top: 6px; font-weight: 700; color: var(--accent-green);">
+            <div style="margin-top: 6px; font-weight: 700; color: #248a3d;">
                 ${v.montant.toFixed(2)} €
             </div>
             <button onclick="toggleDetailsTicket(${v.id})" style="margin-top: 8px; background: none; border: none; color: var(--accent-blue); padding: 0; font-size: 12px; cursor: pointer;">Voir le détail</button>
