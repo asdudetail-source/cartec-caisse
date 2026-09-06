@@ -1,6 +1,6 @@
 let stock = JSON.parse(localStorage.getItem('cartec_stock')) || [
-    { id: 1, name: "Nettoyant Jantes Cartec", pricePart: 18.00, pricePro: 12.00, stock: 10 },
-    { id: 2, name: "Shampoing Carosserie", pricePart: 15.00, pricePro: 10.00, stock: 15 }
+    { id: 1, name: "Nettoyant Jantes Cartec", cost: 8.00, pricePart: 18.00, pricePro: 12.00, stock: 10 },
+    { id: 2, name: "Shampoing Carosserie", cost: 6.00, pricePart: 15.00, pricePro: 10.00, stock: 15 }
 ];
 
 let cart = [];
@@ -159,14 +159,16 @@ function renderStockTable() {
     const filteredStock = stock.filter(p => p.name.toLowerCase().includes(searchQuery));
 
     if (filteredStock.length === 0) {
-        body.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #8e8e93; padding: 1.2rem;">Aucun produit trouvé</td></tr>`;
+        body.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #8e8e93; padding: 1.2rem;">Aucun produit trouvé</td></tr>`;
         return;
     }
 
     filteredStock.forEach(p => {
+        const costVal = p.cost !== undefined ? p.cost.toFixed(2) : '0.00';
         body.innerHTML += `
             <tr>
                 <td><strong>${p.name}</strong></td>
+                <td>${costVal} €</td>
                 <td>${p.pricePart.toFixed(2)} €</td>
                 <td>${p.pricePro.toFixed(2)} €</td>
                 <td>${p.stock}</td>
@@ -185,6 +187,7 @@ function editProduct(id) {
 
     document.getElementById('prod-name').value = prod.name;
     document.getElementById('prod-stock').value = prod.stock;
+    document.getElementById('prod-cost').value = prod.cost || 0;
     document.getElementById('prod-price-pro').value = prod.pricePro;
     document.getElementById('prod-price-part').value = prod.pricePart;
 
@@ -217,6 +220,7 @@ function handleAddProduct(e) {
 
     const name = document.getElementById('prod-name').value;
     const stockQty = parseInt(document.getElementById('prod-stock').value);
+    const cost = parseFloat(document.getElementById('prod-cost').value);
     const pricePro = parseFloat(document.getElementById('prod-price-pro').value);
     const pricePart = parseFloat(document.getElementById('prod-price-part').value);
 
@@ -225,6 +229,7 @@ function handleAddProduct(e) {
         if (prod) {
             prod.name = name;
             prod.stock = stockQty;
+            prod.cost = cost;
             prod.pricePro = pricePro;
             prod.pricePart = pricePart;
         }
@@ -233,10 +238,11 @@ function handleAddProduct(e) {
         const existingProduct = stock.find(p => p.name.toLowerCase() === name.toLowerCase());
         if (existingProduct) {
             existingProduct.stock += stockQty;
+            existingProduct.cost = cost;
             existingProduct.pricePro = pricePro;
             existingProduct.pricePart = pricePart;
         } else {
-            stock.push({ id: Date.now(), name, pricePro, pricePart, stock: stockQty });
+            stock.push({ id: Date.now(), name, cost, pricePro, pricePart, stock: stockQty });
         }
         e.target.reset();
     }
@@ -285,7 +291,7 @@ function exportData() {
 
     let textStock = stock.length === 0 
         ? "(Catalogue vide)" 
-        : stock.map(s => `- ${s.name} : ${s.stock} restant(s)`).join("\n");
+        : stock.map(s => `- ${s.name} : ${s.stock} restant(s) (Base: ${(s.cost || 0).toFixed(2)}€)`).join("\n");
 
     const reportStr = `📊 BILAN DE STOCK & VENTES :
 
