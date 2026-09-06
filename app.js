@@ -1,7 +1,6 @@
 let stock = JSON.parse(localStorage.getItem('cartec_stock')) || [
-    { id: 1, name: "Nettoyant Jantes Cartec", price: 15.00, stock: 10 },
-    { id: 2, name: "Shampoing Carosserie", price: 12.50, stock: 15 },
-    { id: 3, name: "Microfibre Haute Densité", price: 5.00, stock: 30 }
+    { id: 1, name: "Nettoyant Jantes Cartec", pricePart: 18.00, pricePro: 12.00, stock: 10 },
+    { id: 2, name: "Shampoing Carosserie", pricePart: 15.00, pricePro: 10.00, stock: 15 }
 ];
 
 let cart = [];
@@ -31,12 +30,18 @@ function renderAll() {
 
 function renderProducts() {
     const grid = document.getElementById('product-grid');
+    const clientType = document.getElementById('select-client').value;
+    const searchQuery = document.getElementById('search-bar').value.toLowerCase();
     grid.innerHTML = '';
-    stock.forEach(prod => {
+
+    const filteredStock = stock.filter(p => p.name.toLowerCase().includes(searchQuery));
+
+    filteredStock.forEach(prod => {
+        const currentPrice = clientType === 'pro' ? prod.pricePro : prod.pricePart;
         grid.innerHTML += `
             <div class="product-card" onclick="addToCart(${prod.id})">
                 <h4>${prod.name}</h4>
-                <div class="price">${prod.price.toFixed(2)} €</div>
+                <div class="price">${currentPrice.toFixed(2)} €</div>
                 <div class="stock">Stock : ${prod.stock}</div>
             </div>
         `;
@@ -45,12 +50,16 @@ function renderProducts() {
 
 function addToCart(productId) {
     const product = stock.find(p => p.id === productId);
+    const clientType = document.getElementById('select-client').value;
+
     if (!product || product.stock <= 0) {
         alert("Produit en rupture de stock !");
         return;
     }
 
+    const priceToApply = clientType === 'pro' ? product.pricePro : product.pricePart;
     const cartItem = cart.find(item => item.id === productId);
+
     if (cartItem) {
         if (cartItem.qty < product.stock) {
             cartItem.qty++;
@@ -58,7 +67,7 @@ function addToCart(productId) {
             alert("Stock maximum atteint pour cet article !");
         }
     } else {
-        cart.push({ id: product.id, name: product.name, price: product.price, qty: 1 });
+        cart.push({ id: product.id, name: product.name, price: priceToApply, qty: 1 });
     }
     renderCart();
 }
@@ -94,6 +103,9 @@ function checkout() {
         return;
     }
 
+    const clientType = document.getElementById('select-client').value === 'pro' ? 'Professionnel' : 'Particulier';
+    const canalType = document.getElementById('select-canal').value === 'facture' ? 'Facturé' : 'Cash / Black';
+
     cart.forEach(item => {
         const prod = stock.find(p => p.id === item.id);
         if (prod) {
@@ -104,6 +116,8 @@ function checkout() {
     const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const saleRecord = {
         date: new Date().toLocaleString('fr-FR'),
+        canal: canalType,
+        tarif: clientType,
         items: cart.map(i => `${i.name} (x${i.qty})`).join(', '),
         total: total.toFixed(2)
     };
@@ -118,15 +132,17 @@ function checkout() {
 function handleAddProduct(e) {
     e.preventDefault();
     const name = document.getElementById('prod-name').value;
-    const price = parseFloat(document.getElementById('prod-price').value);
-    const qty = parseInt(document.getElementById('prod-stock').value);
+    const stockQty = parseInt(document.getElementById('prod-stock').value);
+    const pricePro = parseFloat(document.getElementById('prod-price-pro').value);
+    const pricePart = parseFloat(document.getElementById('prod-price-part').value);
 
     const existingProduct = stock.find(p => p.name.toLowerCase() === name.toLowerCase());
     if (existingProduct) {
-        existingProduct.price = price;
-        existingProduct.stock += qty;
+        existingProduct.stock += stockQty;
+        existingProduct.pricePro = pricePro;
+        existingProduct.pricePart = pricePart;
     } else {
-        stock.push({ id: Date.now(), name, price, stock: qty });
+        stock.push({ id: Date.now(), name, pricePro, pricePart, stock: stockQty });
     }
 
     saveData();
@@ -147,7 +163,8 @@ function renderStockTable() {
         body.innerHTML += `
             <tr>
                 <td>${p.name}</td>
-                <td>${p.price.toFixed(2)} €</td>
+                <td>${p.pricePart.toFixed(2)} €</td>
+                <td>${p.pricePro.toFixed(2)} €</td>
                 <td>${p.stock}</td>
                 <td><button class="btn-danger" style="padding: 0.3rem 0.6rem; width: auto;" onclick="deleteProduct(${p.id})">Supprimer</button></td>
             </tr>
@@ -162,11 +179,32 @@ function renderHistoryTable() {
         body.innerHTML += `
             <tr>
                 <td>${s.date}</td>
+                <td><strong>${s.canal}</strong></td>
+                <td>${s.tarif}</td>
                 <td>${s.items}</td>
                 <td><strong>${s.total} €</strong></td>
             </tr>
         `;
     });
+}
+
+function exportData() {
+    const dataStr = "BILAN CAISSE CARTEC\n\n--- INVENTAIRE STOCK ---\n" + 
+        stock.map(s => `${s.name} - Stock: ${s.stock} (Part: ${s.pricePart}€ / Pro: ${s.pricePro}€)`).join("\n") +
+        "\n\n--- HISTORIQUE VENTES ---\n" +
+        salesHistory.map(h => `[${h.date}] (${h.canal} - ${h.tarif}) : ${h.items} = ${h.total}€`).join("\n");
+
+    navigator.clipboard.writeText(dataStr);
+    alert("Bilan copié dans le presse-papier !");
+}
+
+function resetAll() {
+    if (confirm("Voulez-vous vraiment TOUT réinitialiser (catalogue et ventes) ?")) {
+        stock = [];
+        salesHistory = [];
+        saveData();
+        renderAll();
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
