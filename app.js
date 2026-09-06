@@ -36,6 +36,11 @@ function renderProducts() {
 
     const filteredStock = stock.filter(p => p.name.toLowerCase().includes(searchQuery));
 
+    if (filteredStock.length === 0) {
+        grid.innerHTML = '<p style="grid-column: 1/-1; color: #8e8e93; font-style: italic;">Aucun produit trouvé.</p>';
+        return;
+    }
+
     filteredStock.forEach(prod => {
         const currentPrice = clientType === 'pro' ? prod.pricePro : prod.pricePart;
         grid.innerHTML += `
@@ -148,6 +153,7 @@ function handleAddProduct(e) {
     saveData();
     e.target.reset();
     renderAll();
+    alert("Produit enregistré avec succès !");
 }
 
 function deleteProduct(id) {
@@ -162,11 +168,11 @@ function renderStockTable() {
     stock.forEach(p => {
         body.innerHTML += `
             <tr>
-                <td>${p.name}</td>
+                <td><strong>${p.name}</strong></td>
                 <td>${p.pricePart.toFixed(2)} €</td>
                 <td>${p.pricePro.toFixed(2)} €</td>
                 <td>${p.stock}</td>
-                <td><button class="btn-danger" style="padding: 0.3rem 0.6rem; width: auto;" onclick="deleteProduct(${p.id})">Supprimer</button></td>
+                <td><button class="btn-danger" style="padding: 0.4rem 0.8rem; width: auto; font-size: 0.9rem;" onclick="deleteProduct(${p.id})">Supprimer</button></td>
             </tr>
         `;
     });
