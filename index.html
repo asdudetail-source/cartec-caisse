@@ -73,31 +73,31 @@
                 <div class="form-row">
                     <div class="field-item flex-2">
                         <input type="text" id="prod-name" placeholder="Nom du produit" required>
-                        <span class="field-hint">Nom du produit</span>
+                        <span class="field-label">Nom du produit</span>
                     </div>
 
                     <div class="field-item">
                         <input type="number" id="prod-stock" placeholder="Stock" min="0" required>
-                        <span class="field-hint">Stock dispo</span>
+                        <span class="field-label">Stock dispo</span>
                     </div>
 
                     <div class="field-item">
                         <input type="number" id="prod-cost" placeholder="Prix Base (€)" step="0.01" required>
-                        <span class="field-hint">Prix Base</span>
+                        <span class="field-label">Prix Base</span>
                     </div>
 
                     <div class="field-item">
                         <input type="number" id="prod-price-part" placeholder="Prix Part. (€)" step="0.01" required>
-                        <span class="field-hint">Prix Particulier</span>
+                        <span class="field-label">Prix Particulier</span>
                     </div>
 
                     <div class="field-item">
                         <input type="number" id="prod-price-pro" placeholder="Prix Pro (€)" step="0.01" required>
-                        <span class="field-hint">Prix Pro</span>
+                        <span class="field-label">Prix Pro</span>
                     </div>
 
                     <div class="field-item actions-inline">
-                        <button type="submit" id="submit-btn" class="btn-success">Enregistrer</button>
+                        <button type="submit" id="submit-btn" class="btn-success">Mettre à jour l'article</button>
                         <button type="button" id="cancel-edit-btn" class="btn-secondary" style="display: none;" onclick="cancelEdit()">Annuler</button>
                     </div>
                 </div>
@@ -147,6 +147,6 @@
         </section>
     </main>
 
-    <script src="app.js?v=5"></script>
+    <script src="app.js?v=6"></script>
 </body>
 </html>
