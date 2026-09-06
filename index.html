@@ -3,58 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caisse & Stock Cartec</title>
+    <title>Caisse Cartec</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
-        <!-- Formulaire d'ajout rapide -->
-        <section class="form-section">
-            <h2>+ Ajouter un produit</h2>
+        <!-- Formulaire d'ajout -->
+        <section class="card-section form-section">
+            <h2>+ Nouveau Produit</h2>
             <form id="form-produit" onsubmit="ajouterProduitManuel(event)">
-                <input type="text" id="add-ref" placeholder="Référence (ex: 12122/5)" required>
                 <input type="text" id="add-nom" placeholder="Nom du produit" required>
-                <input type="number" id="add-stock" placeholder="Stock initial" min="0" required>
-                <input type="number" step="0.01" id="add-pa" placeholder="Prix d'achat Net (€)" required>
-                <button type="submit" class="btn-ajouter">+ Enregistrer le produit</button>
+                <input type="number" id="add-stock" placeholder="Stock disponible" min="0" required>
+                <input type="number" step="0.01" id="add-pro" placeholder="Prix Pro (€)" required>
+                <input type="number" step="0.01" id="add-part" placeholder="Prix Particulier (€)" required>
+                <button type="submit" class="btn-ajouter">Ajouter au catalogue</button>
             </form>
         </section>
 
-        <!-- Catalogue -->
-        <section class="catalogue-section">
-            <h2>Catalogue Produits</h2>
-            <input type="text" id="search-bar" placeholder="Rechercher..." oninput="filtrerProduits()">
+        <!-- Catalogue Produits -->
+        <section class="card-section catalogue-section">
+            <h2>Catalogue</h2>
+            <input type="text" id="search-bar" placeholder="Rechercher un article..." oninput="filtrerProduits()">
             
             <div class="options-vente">
-                <label>Client :
-                    <select id="select-client" onchange="rafraichirTicket()">
-                        <option value="particulier">Particulier</option>
-                        <option value="pro">Professionnel</option>
-                    </select>
-                </label>
-                <label>Canal :
-                    <select id="select-canal" onchange="rafraichirTicket()">
-                        <option value="facture">Facturé</option>
-                        <option value="black">Black</option>
-                    </select>
-                </label>
+                <select id="select-client" onchange="rafraichirTout()">
+                    <option value="particulier">Client Particulier</option>
+                    <option value="pro">Client Professionnel</option>
+                </select>
+                <select id="select-canal" onchange="rafraichirTout()">
+                    <option value="facture">Canal Facturé</option>
+                    <option value="black">Canal Black</option>
+                </select>
             </div>
 
             <div id="produits-grid" class="grid"></div>
         </section>
 
-        <!-- Ticket de caisse -->
-        <section class="ticket-section">
+        <!-- Ticket de Caisse -->
+        <section class="card-section ticket-section">
             <h2>Ticket en cours</h2>
-            <div id="ticket-items"></div>
+            <div id="ticket-items" class="ticket-list"></div>
             
             <div class="total-box">
-                <span>TOTAL À PAYER</span>
+                <small>TOTAL</small>
                 <h1 id="total-amount">0.00 €</h1>
             </div>
 
-            <button class="btn-valider" onclick="validerVente()">Valider la vente & Déstocker</button>
-            <button class="btn-reset" onclick="reinitialiserTout()">Vider la base de données</button>
+            <button class="btn-valider" onclick="validerVente()">Valider la vente</button>
+            <button class="btn-reset" onclick="reinitialiserTout()">Nettoyer le catalogue</button>
         </section>
     </div>
 
