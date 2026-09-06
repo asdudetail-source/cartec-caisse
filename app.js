@@ -1,3 +1,6 @@
+// Version du script pour vider le cache
+console.log("App version 2.0 chargée");
+
 let stock = JSON.parse(localStorage.getItem('cartec_stock')) || [
     { id: 1, name: "Nettoyant Jantes Cartec", cost: 8.00, pricePart: 18.00, pricePro: 12.00, stock: 10 },
     { id: 2, name: "Shampoing Carosserie", cost: 6.00, pricePart: 15.00, pricePro: 10.00, stock: 15 }
@@ -291,7 +294,7 @@ function exportData() {
 
     let textStock = stock.length === 0 
         ? "(Catalogue vide)" 
-        : stock.map(s => `- ${s.name} : ${s.stock} restant(s) (Base: ${(s.cost || 0).toFixed(2)}€)`).join("\n");
+        : stock.map(s => `- ${s.name} : ${s.stock} restant(s)`).join("\n");
 
     const reportStr = `📊 BILAN DE STOCK & VENTES :
 
