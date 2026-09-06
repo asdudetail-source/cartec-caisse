@@ -6,24 +6,38 @@ document.addEventListener('DOMContentLoaded', function() {
     chargerDonnees();
     rafraichirTout();
 
-    // Gestion du Modal
+    // Opening and closing modal
     const modal = document.getElementById('modal-produit');
-    document.getElementById('btn-ouvrir-modal').addEventListener('click', () => modal.classList.add('active'));
-    document.getElementById('btn-fermer-modal').addEventListener('click', () => modal.classList.remove('active'));
+    const btnOuvrir = document.getElementById('btn-ouvrir-modal');
+    const btnFermer = document.getElementById('btn-fermer-modal');
 
-    document.getElementById('form-produit').addEventListener('submit', function(e) {
+    if (btnOuvrir) {
+        btnOuvrir.onclick = function(e) {
+            e.preventDefault();
+            modal.classList.add('active');
+        };
+    }
+
+    if (btnFermer) {
+        btnFermer.onclick = function() {
+            modal.classList.remove('active');
+        };
+    }
+
+    // Submit product form
+    document.getElementById('form-produit').onsubmit = function(e) {
         e.preventDefault();
         ajouterProduit();
         modal.classList.remove('active');
-    });
+    };
 
-    document.getElementById('select-client').addEventListener('change', rafraichirTout);
-    document.getElementById('select-canal').addEventListener('change', rafraichirTout);
-    document.getElementById('search-bar').addEventListener('input', rafraichirTout);
+    document.getElementById('select-client').onchange = rafraichirTout;
+    document.getElementById('select-canal').onchange = rafraichirTout;
+    document.getElementById('search-bar').oninput = rafraichirTout;
 
-    document.getElementById('btn-valider').addEventListener('click', validerVente);
-    document.getElementById('btn-export').addEventListener('click', exporterStockEtVentes);
-    document.getElementById('btn-reset').addEventListener('click', reinitialiserTout);
+    document.getElementById('btn-valider').onclick = validerVente;
+    document.getElementById('btn-export').onclick = exporterStockEtVentes;
+    document.getElementById('btn-reset').onclick = reinitialiserTout;
 });
 
 function chargerDonnees() {
@@ -83,7 +97,6 @@ function afficherCatalogue(liste) {
         const card = document.createElement('div');
         card.className = 'product-card';
 
-        // Badge Stock Couleur Dynamique
         let badgeClass = 'stock-high';
         if (p.stock === 0) badgeClass = 'stock-out';
         else if (p.stock <= 3) badgeClass = 'stock-low';
@@ -96,31 +109,54 @@ function afficherCatalogue(liste) {
             <div class="product-price">${prix.toFixed(2)} €</div>
         `;
 
-        // Appui long & Clics
+        // CORRECTION GESTION TACTILE (CLIC / APPUI LONG)
         let timerAppuiLong = null;
-        let estAppuiLong = false;
+        let estLongPress = false;
 
-        const demarrerAppuiLong = () => {
-            estAppuiLong = false;
+        const demarrerPress = () => {
+            estLongPress = false;
             timerAppuiLong = setTimeout(() => {
-                estAppuiLong = true;
+                estLongPress = true;
                 ouvrirMenuOptionProduit(p);
             }, 500);
         };
 
-        const annulerAppuiLong = () => clearTimeout(timerAppuiLong);
+        const annulerPress = () => {
+            if (timerAppuiLong) clearTimeout(timerAppuiLong);
+        };
 
-        card.addEventListener('touchstart', demarrerAppuiLong, { passive: true });
-        card.addEventListener('touchend', () => {
-            annulerAppuiLong();
-            if (!estAppuiLong) ajouterAuTicket(p);
-        });
+        // Sur mobile / tablette (Touch)
+        card.ontouchstart = function() {
+            demarrerPress();
+        };
 
-        card.addEventListener('mousedown', demarrerAppuiLong);
-        card.addEventListener('mouseup', annulerAppuiLong);
-        card.addEventListener('click', (e) => {
-            if (!estAppuiLong && e.pointerType === 'mouse') ajouterAuTicket(p);
-        });
+        card.ontouchend = function(e) {
+            annulerPress();
+            if (!estLongPress) {
+                ajouterAuTicket(p);
+            }
+        };
+
+        card.ontouchmove = function() {
+            annulerPress();
+        };
+
+        // Sur PC (Mouse)
+        card.onmousedown = function() {
+            demarrerPress();
+        };
+
+        card.onmouseup = function() {
+            annulerPress();
+        };
+
+        card.onclick = function(e) {
+            // Empêche le déclenchement en cas d'appui long
+            if (estLongPress) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        };
 
         grid.appendChild(card);
     });
@@ -130,7 +166,7 @@ function ouvrirMenuOptionProduit(produit) {
     const choix = confirm(`Gestion de "${produit.nom}" :\n\n- [OK] pour MODIFIER LE STOCK\n- [Annuler] pour SUPPRIMER L'ARTICLE`);
     
     if (choix) {
-        const nouveauStock = prompt(`Ajuster le stock pour "${produit.nom}" :`, produit.stock);
+        const nouveauStock = prompt(`Nouveau stock pour "${produit.nom}" :`, produit.stock);
         if (nouveauStock !== null) {
             const stockInt = parseInt(nouveauStock);
             if (!isNaN(stockInt) && stockInt >= 0) {
@@ -140,7 +176,7 @@ function ouvrirMenuOptionProduit(produit) {
             }
         }
     } else {
-        if (confirm(`Confirmer la SUPPRESSION définitive de "${produit.nom}" ?`)) {
+        if (confirm(`Voulez-vous supprimer définitivement "${produit.nom}" ?`)) {
             catalogue = catalogue.filter(p => p.id !== produit.id);
             sauvegarderDonnees();
             rafraichirTout();
@@ -151,7 +187,7 @@ function ouvrirMenuOptionProduit(produit) {
 function ajouterAuTicket(produit) {
     const prodCatalogue = catalogue.find(p => p.id === produit.id);
     if (!prodCatalogue || prodCatalogue.stock <= 0) {
-        alert("Cet article est en rupture de stock.");
+        alert("Stock épuisé.");
         return;
     }
 
@@ -220,6 +256,7 @@ function validerVente() {
     sauvegarderDonnees();
     ticket = [];
     rafraichirTout();
+    alert("Vente validée !");
 }
 
 function afficherHistoriqueVentes() {
