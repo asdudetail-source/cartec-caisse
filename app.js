@@ -6,38 +6,59 @@ document.addEventListener('DOMContentLoaded', function() {
     chargerDonnees();
     rafraichirTout();
 
-    // Opening and closing modal
+    // 1. Gestion de la fenêtre Modale (+ Produit)
     const modal = document.getElementById('modal-produit');
     const btnOuvrir = document.getElementById('btn-ouvrir-modal');
     const btnFermer = document.getElementById('btn-fermer-modal');
 
-    if (btnOuvrir) {
+    if (btnOuvrir && modal) {
         btnOuvrir.onclick = function(e) {
             e.preventDefault();
+            modal.style.display = 'flex';
             modal.classList.add('active');
         };
     }
 
-    if (btnFermer) {
-        btnFermer.onclick = function() {
+    if (btnFermer && modal) {
+        btnFermer.onclick = function(e) {
+            e.preventDefault();
+            modal.style.display = 'none';
             modal.classList.remove('active');
         };
     }
 
-    // Submit product form
-    document.getElementById('form-produit').onsubmit = function(e) {
-        e.preventDefault();
-        ajouterProduit();
-        modal.classList.remove('active');
-    };
+    // 2. Soumission du formulaire Ajouter Produit
+    const formProduit = document.getElementById('form-produit');
+    if (formProduit) {
+        formProduit.onsubmit = function(e) {
+            e.preventDefault();
+            ajouterProduit();
+            if (modal) {
+                modal.style.display = 'none';
+                modal.classList.remove('active');
+            }
+        };
+    }
 
-    document.getElementById('select-client').onchange = rafraichirTout;
-    document.getElementById('select-canal').onchange = rafraichirTout;
-    document.getElementById('search-bar').oninput = rafraichirTout;
+    // 3. Changements de filtres & recherche
+    const selectClient = document.getElementById('select-client');
+    if (selectClient) selectClient.onchange = rafraichirTout;
 
-    document.getElementById('btn-valider').onclick = validerVente;
-    document.getElementById('btn-export').onclick = exporterStockEtVentes;
-    document.getElementById('btn-reset').onclick = reinitialiserTout;
+    const selectCanal = document.getElementById('select-canal');
+    if (selectCanal) selectCanal.onchange = rafraichirTout;
+
+    const searchBar = document.getElementById('search-bar');
+    if (searchBar) searchBar.oninput = rafraichirTout;
+
+    // 4. Boutons d'action principaux
+    const btnValider = document.getElementById('btn-valider');
+    if (btnValider) btnValider.onclick = validerVente;
+
+    const btnExport = document.getElementById('btn-export');
+    if (btnExport) btnExport.onclick = exporterStockEtVentes;
+
+    const btnReset = document.getElementById('btn-reset');
+    if (btnReset) btnReset.onclick = reinitialiserTout;
 });
 
 function chargerDonnees() {
@@ -58,37 +79,53 @@ function sauvegarderDonnees() {
 }
 
 function ajouterProduit() {
-    const nom = document.getElementById('add-nom').value.trim();
-    const stock = parseInt(document.getElementById('add-stock').value) || 0;
-    const prixPro = parseFloat(document.getElementById('add-pro').value) || 0;
-    const prixParticulier = parseFloat(document.getElementById('add-part').value) || 0;
+    const elNom = document.getElementById('add-nom');
+    const elStock = document.getElementById('add-stock');
+    const elPro = document.getElementById('add-pro');
+    const elPart = document.getElementById('add-part');
 
-    if (!nom) return;
+    if (!elNom) return;
 
-    catalogue.push({
+    const nom = elNom.value.trim();
+    const stock = parseInt(elStock ? elStock.value : 0) || 0;
+    const prixPro = parseFloat(elPro ? elPro.value : 0) || 0;
+    const prixParticulier = parseFloat(elPart ? elPart.value : 0) || 0;
+
+    if (!nom) {
+        alert("Veuillez entrer un nom d'article.");
+        return;
+    }
+
+    const nouveauProduit = {
         id: Date.now().toString(),
         nom: nom,
         stock: stock,
         prix_pro: prixPro,
         prix_particulier: prixParticulier
-    });
+    };
 
+    catalogue.push(nouveauProduit);
     sauvegarderDonnees();
     rafraichirTout();
+
+    // Réinitialisation du formulaire
     document.getElementById('form-produit').reset();
 }
 
 function obtenirPrixProduit(p) {
-    const typeClient = document.getElementById('select-client').value;
+    const selectClient = document.getElementById('select-client');
+    const typeClient = selectClient ? selectClient.value : 'particulier';
     return typeClient === 'pro' ? p.prix_pro : p.prix_particulier;
 }
 
 function afficherCatalogue(liste) {
     const grid = document.getElementById('produits-grid');
+    if (!grid) return;
+
     grid.innerHTML = '';
 
     if (liste.length === 0) {
-        grid.innerHTML = '<p style="grid-column: 1/-1; color: var(--text-secondary); text-align: center; padding: 20px;">Aucun article disponible.</p>';
+        grid.innerHTML = '<p style="grid-column: 1/-1; color: #8e8e93; text-align: center; padding: 20px;">Aucun article disponible dans le catalogue.</p>';
         return;
     }
 
@@ -102,68 +139,54 @@ function afficherCatalogue(liste) {
         else if (p.stock <= 3) badgeClass = 'stock-low';
 
         card.innerHTML = `
-            <div>
+            <div style="flex: 1;">
                 <span class="product-title">${p.nom}</span>
                 <span class="product-badge-stock ${badgeClass}">Stock: ${p.stock}</span>
             </div>
             <div class="product-price">${prix.toFixed(2)} €</div>
         `;
 
-        // CORRECTION GESTION TACTILE (CLIC / APPUI LONG)
-        let timerAppuiLong = null;
-        let estLongPress = false;
+        // Gestion du clic sur l'article
+        let longPressTimer = null;
+        let isLongPress = false;
 
-        const demarrerPress = () => {
-            estLongPress = false;
-            timerAppuiLong = setTimeout(() => {
-                estLongPress = true;
+        const startPress = () => {
+            isLongPress = false;
+            longPressTimer = setTimeout(() => {
+                isLongPress = true;
                 ouvrirMenuOptionProduit(p);
-            }, 500);
+            }, 600);
         };
 
-        const annulerPress = () => {
-            if (timerAppuiLong) clearTimeout(timerAppuiLong);
+        const cancelPress = () => {
+            if (longPressTimer) clearTimeout(longPressTimer);
         };
 
-        // Sur mobile / tablette (Touch)
-        card.ontouchstart = function() {
-            demarrerPress();
-        };
+        card.addEventListener('mousedown', startPress);
+        card.addEventListener('touchstart', startPress, { passive: true });
 
-        card.ontouchend = function(e) {
-            annulerPress();
-            if (!estLongPress) {
+        card.addEventListener('mouseup', cancelPress);
+        card.addEventListener('mouseleave', cancelPress);
+        card.addEventListener('touchend', (e) => {
+            cancelPress();
+            if (!isLongPress) {
+                e.preventDefault();
                 ajouterAuTicket(p);
             }
-        };
+        });
 
-        card.ontouchmove = function() {
-            annulerPress();
-        };
-
-        // Sur PC (Mouse)
-        card.onmousedown = function() {
-            demarrerPress();
-        };
-
-        card.onmouseup = function() {
-            annulerPress();
-        };
-
-        card.onclick = function(e) {
-            // Empêche le déclenchement en cas d'appui long
-            if (estLongPress) {
-                e.preventDefault();
-                e.stopPropagation();
+        card.addEventListener('click', (e) => {
+            if (!isLongPress) {
+                ajouterAuTicket(p);
             }
-        };
+        });
 
         grid.appendChild(card);
     });
 }
 
 function ouvrirMenuOptionProduit(produit) {
-    const choix = confirm(`Gestion de "${produit.nom}" :\n\n- [OK] pour MODIFIER LE STOCK\n- [Annuler] pour SUPPRIMER L'ARTICLE`);
+    const choix = confirm(`Gestion de "${produit.nom}" :\n\n• OK = Modifier le stock\n• Annuler = Supprimer l'article`);
     
     if (choix) {
         const nouveauStock = prompt(`Nouveau stock pour "${produit.nom}" :`, produit.stock);
@@ -176,7 +199,7 @@ function ouvrirMenuOptionProduit(produit) {
             }
         }
     } else {
-        if (confirm(`Voulez-vous supprimer définitivement "${produit.nom}" ?`)) {
+        if (confirm(`Voulez-vous vraiment supprimer "${produit.nom}" ?`)) {
             catalogue = catalogue.filter(p => p.id !== produit.id);
             sauvegarderDonnees();
             rafraichirTout();
@@ -187,7 +210,7 @@ function ouvrirMenuOptionProduit(produit) {
 function ajouterAuTicket(produit) {
     const prodCatalogue = catalogue.find(p => p.id === produit.id);
     if (!prodCatalogue || prodCatalogue.stock <= 0) {
-        alert("Stock épuisé.");
+        alert("Stock épuisé pour cet article.");
         return;
     }
 
@@ -207,6 +230,8 @@ function ajouterAuTicket(produit) {
 
 function afficherTicket() {
     const container = document.getElementById('ticket-items');
+    if (!container) return;
+
     container.innerHTML = '';
     let total = 0;
 
@@ -215,14 +240,21 @@ function afficherTicket() {
         const sousTotal = prixU * item.quantite;
         total += sousTotal;
 
-        container.innerHTML += `
-            <div class="ticket-item">
-                <span><b>${item.quantite}x</b> ${item.produit.nom}</span>
-                <span><b>${sousTotal.toFixed(2)} €</b></span>
-            </div>`;
+        const div = document.createElement('div');
+        div.className = 'ticket-item';
+        div.style.display = 'flex';
+        div.style.justifyContent = 'space-between';
+        div.style.padding = '8px 0';
+        div.style.borderBottom = '1px solid #2c2c2e';
+        div.innerHTML = `
+            <span><b>${item.quantite}x</b> ${item.produit.nom}</span>
+            <span><b>${sousTotal.toFixed(2)} €</b></span>
+        `;
+        container.appendChild(div);
     });
 
-    document.getElementById('total-amount').innerText = total.toFixed(2) + ' €';
+    const totalEl = document.getElementById('total-amount');
+    if (totalEl) totalEl.innerText = total.toFixed(2) + ' €';
 }
 
 function validerVente() {
@@ -231,7 +263,9 @@ function validerVente() {
         return;
     }
 
-    const canalActuel = document.getElementById('select-canal').value;
+    const selectCanal = document.getElementById('select-canal');
+    const canalActuel = selectCanal ? selectCanal.value : 'black';
+
     let totalVente = 0;
     const articlesVendus = [];
 
@@ -256,15 +290,17 @@ function validerVente() {
     sauvegarderDonnees();
     ticket = [];
     rafraichirTout();
-    alert("Vente validée !");
+    alert("Vente enregistrée avec succès !");
 }
 
 function afficherHistoriqueVentes() {
     const container = document.getElementById('historique-ventes');
+    if (!container) return;
+
     container.innerHTML = '';
 
     if (historiqueVentes.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-secondary); font-size: 13px; text-align: center;">Aucune vente enregistrée.</p>';
+        container.innerHTML = '<p style="color: #8e8e93; font-size: 13px; text-align: center;">Aucune vente enregistrée.</p>';
         return;
     }
 
@@ -280,28 +316,32 @@ function afficherHistoriqueVentes() {
         const card = document.createElement('div');
         card.className = 'vente-card';
         card.innerHTML = `
-            <div class="vente-header">
+            <div class="vente-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <span><b>Vente #${historiqueVentes.length - index}</b> <small>(${v.heure})</small></span>
                 <span class="tag-canal ${canalClass}">${canalLabel}</span>
             </div>
-            <div style="margin-top: 6px; font-weight: 700; color: var(--success-color);">
+            <div style="margin-top: 6px; font-weight: 700; color: #30d158;">
                 ${v.montant.toFixed(2)} €
             </div>
-            <button class="btn-toggle-ticket" onclick="toggleDetailsTicket(${v.id})">Voir le détail</button>
-            <div id="details-${v.id}" class="ticket-details">${articlesHTML}</div>
+            <button class="btn-toggle-ticket" onclick="toggleDetailsTicket(${v.id})" style="margin-top: 8px; background: none; border: none; color: #0a84ff; padding: 0; font-size: 12px; cursor: pointer;">Voir le détail</button>
+            <div id="details-${v.id}" class="ticket-details" style="display: none; margin-top: 8px; font-size: 12px; color: #8e8e93;">${articlesHTML}</div>
         `;
 
         container.appendChild(card);
     });
 }
 
-function toggleDetailsTicket(id) {
+window.toggleDetailsTicket = function(id) {
     const el = document.getElementById(`details-${id}`);
-    if (el) el.classList.toggle('active');
-}
+    if (el) {
+        el.style.display = (el.style.display === 'none' || !el.style.display) ? 'block' : 'none';
+    }
+};
 
 function rafraichirTout() {
-    const query = document.getElementById('search-bar').value.toLowerCase().trim();
+    const searchBar = document.getElementById('search-bar');
+    const query = searchBar ? searchBar.value.toLowerCase().trim() : '';
+
     const listeAffichee = query 
         ? catalogue.filter(p => p.nom.toLowerCase().includes(query))
         : catalogue;
@@ -339,9 +379,9 @@ function exporterStockEtVentes() {
     else for (const [nom, qte] of Object.entries(cumulFacture)) message += `- ${qte}x ${nom}\n`;
     message += `👉 Total Facturé : ${totalFacture.toFixed(2)} €\n\n`;
 
-    message += `💰 TOTAL GÉNÉRAL ENCAISSÉ : ${(totalFacture + totalCash).toFixed(2)} €\n\n`;
+    message += `💰 TOTAL GÉNÉRAL : ${(totalFacture + totalCash).toFixed(2)} €\n\n`;
 
-    message += "📦 STOCK RESTANT EN CATALOGUE :\n";
+    message += "📦 STOCK RESTANT :\n";
     if (catalogue.length === 0) message += "(Catalogue vide)\n";
     else catalogue.forEach(p => message += `- ${p.nom} : ${p.stock} restant(s)\n`);
 
@@ -353,7 +393,7 @@ function exporterStockEtVentes() {
 }
 
 function reinitialiserTout() {
-    if (confirm('Voulez-vous vraiment réinitialiser le catalogue et les ventes ?')) {
+    if (confirm('Voulez-vous vraiment réinitialiser le catalogue et l\'historique des ventes ?')) {
         localStorage.removeItem('cartec_stock_v11');
         localStorage.removeItem('cartec_ventes_v11');
         catalogue = [];
