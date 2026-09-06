@@ -5,7 +5,6 @@ let stock = JSON.parse(localStorage.getItem('cartec_stock')) || [
 
 let cart = [];
 let salesHistory = JSON.parse(localStorage.getItem('cartec_history')) || [];
-let longPressTimer = null;
 
 function saveData() {
     localStorage.setItem('cartec_stock', JSON.stringify(stock));
@@ -53,44 +52,46 @@ function renderProducts() {
             <div class="stock">Stock : ${prod.stock}</div>
         `;
 
-        // Gestion du clic simple vs Appui long (Mobile & Desktop)
+        let timer = null;
         let isLongPress = false;
 
-        const startPress = () => {
+        const start = () => {
             isLongPress = false;
-            longPressTimer = setTimeout(() => {
+            timer = setTimeout(() => {
                 isLongPress = true;
                 openEditModal(prod.id);
-            }, 600); // 600 ms pour l'appui long
+            }, 500);
         };
 
-        const cancelPress = () => {
-            clearTimeout(longPressTimer);
+        const cancel = () => {
+            if (timer) clearTimeout(timer);
         };
 
-        card.addEventListener('touchstart', startPress, { passive: true });
+        // Événements Tactiles iOS / Android
+        card.addEventListener('touchstart', start);
         card.addEventListener('touchend', (e) => {
-            cancelPress();
+            cancel();
             if (!isLongPress) {
                 addToCart(prod.id);
             }
         });
-        card.addEventListener('touchmove', cancelPress);
+        card.addEventListener('touchmove', cancel);
 
-        card.addEventListener('mousedown', startPress);
-        card.addEventListener('mouseup', (e) => {
-            cancelPress();
-            if (!isLongPress && e.button === 0) {
+        // Événements Souris PC
+        card.addEventListener('mousedown', start);
+        card.addEventListener('mouseup', () => {
+            cancel();
+            if (!isLongPress) {
                 addToCart(prod.id);
             }
         });
-        card.addEventListener('mouseleave', cancelPress);
+        card.addEventListener('mouseleave', cancel);
 
         grid.appendChild(card);
     });
 }
 
-/* GESTION DE LA MODALE D'ÉDITION */
+/* MODALE DE MODIFICATION */
 function openEditModal(productId) {
     const prod = stock.find(p => p.id === productId);
     if (!prod) return;
