@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Caisse &amp; Stock</title>
-
+    <title>Caisse & Stock Cartec</title>
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Cartec Caisse">
+    <meta name="mobile-web-app-capable" content="yes">
 
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=4">
     <style>
         .tab-content { display: none; }
         .tab-content.active { display: block; }
@@ -17,7 +19,7 @@
 <body>
 
     <header>
-        <h1>Caisse &amp; Stock</h1>
+        <h1>Caisse &amp; Stock Cartec</h1>
         <nav>
             <button id="tab-caisse" class="active" onclick="switchTab('caisse')">Caisse / Vente</button>
             <button id="tab-stock" onclick="switchTab('stock')">Gestion Stock</button>
@@ -30,6 +32,7 @@
         <section id="section-caisse" class="tab-content active">
             <div class="caisse-container">
                 <div class="catalog-panel">
+                    <h2>Catalogue</h2>
                     
                     <div class="options-vente">
                         <select id="select-client" onchange="renderProducts()">
@@ -42,18 +45,18 @@
                         </select>
                     </div>
 
-                    <!-- Barre d'action avec bouton de retour, création rapide et recherche -->
-                    <div class="search-and-back">
-                        <button id="btn-back-nav" class="btn-back" onclick="navigateBack()" style="display: none;">← Retour</button>
-                        <button id="btn-add-folder-home" class="btn-add-quick" onclick="createFolderFromHome()">+ Nouveau Dossier</button>
-                        <button id="btn-add-category-home" class="btn-add-quick" onclick="createCategoryFromHome()" style="display: none;">+ Nouvelle Catégorie</button>
-                        <input type="text" id="search-bar" placeholder="🔍 Rechercher un article..." oninput="handleSearch()">
+                    <!-- FILTRES PAR MARQUE ET CATEGORIE -->
+                    <div class="filter-bar">
+                        <select id="filter-brand" onchange="renderProducts()">
+                            <option value="">Toutes les marques</option>
+                        </select>
+                        <select id="filter-category" onchange="renderProducts()">
+                            <option value="">Toutes les catégories</option>
+                        </select>
                     </div>
 
-                    <!-- Fil d'ariane / Titre du niveau -->
-                    <h3 id="current-folder-title" class="folder-title">Dossiers</h3>
+                    <input type="text" id="search-bar" placeholder="🔍 Rechercher un article..." oninput="renderProducts()">
 
-                    <!-- Grille dynamique (Dossiers, Catégories ou Articles) -->
                     <div id="product-grid" class="product-grid"></div>
                 </div>
 
@@ -74,35 +77,34 @@
 
         <!-- SECTION GESTION DU STOCK -->
         <section id="section-stock" class="tab-content">
-            <h2>Inventaire &amp; Affectation Produits</h2>
+            <h2>Inventaire &amp; Ajout Produits</h2>
             <form id="add-product-form" onsubmit="handleAddProduct(event)">
                 <h3 id="form-title">+ Ajouter / Modifier un produit</h3>
-                
-                <div class="form-grid-clean">
-                    <div class="field-item full-width">
+                <div class="form-row">
+                    <div class="field-item flex-2">
                         <span class="field-label">Nom du produit</span>
-                        <input type="text" id="prod-name" placeholder="Ex: Green Star 1L" required>
+                        <input type="text" id="prod-name" placeholder="Ex: Nettoyant Jantes" required>
                     </div>
 
                     <div class="field-item">
-                        <span class="field-label">Dossier (Marque / Groupe)</span>
-                        <input type="text" id="prod-folder" placeholder="Ex: Koch-Chemie" required list="folders-list">
-                        <datalist id="folders-list"></datalist>
+                        <span class="field-label">Marque</span>
+                        <input type="text" id="prod-brand" placeholder="Ex: Cartec, Koch-Chemie" required list="brands-list">
+                        <datalist id="brands-list"></datalist>
                     </div>
 
                     <div class="field-item">
                         <span class="field-label">Catégorie</span>
-                        <input type="text" id="prod-category" placeholder="Ex: Nettoyant Polyvalent" required list="categories-list">
+                        <input type="text" id="prod-category" placeholder="Ex: Nettoyant, Brosse, Microfibre" required list="categories-list">
                         <datalist id="categories-list"></datalist>
                     </div>
 
                     <div class="field-item">
-                        <span class="field-label">Stock disponible</span>
+                        <span class="field-label">Stock dispo</span>
                         <input type="number" id="prod-stock" placeholder="0" min="0" required>
                     </div>
 
                     <div class="field-item">
-                        <span class="field-label">Prix Achat (€)</span>
+                        <span class="field-label">Prix Base (€)</span>
                         <input type="number" id="prod-cost" placeholder="0.00" step="0.01" required>
                     </div>
 
@@ -112,12 +114,12 @@
                     </div>
 
                     <div class="field-item">
-                        <span class="field-label">Prix Professionnel (€)</span>
+                        <span class="field-label">Prix Pro (€)</span>
                         <input type="number" id="prod-price-pro" placeholder="0.00" step="0.01" required>
                     </div>
 
-                    <div class="field-item full-width actions-inline">
-                        <button type="submit" id="submit-btn" class="btn-success">+ Enregistrer le produit</button>
+                    <div class="field-item actions-inline">
+                        <button type="submit" id="submit-btn" class="btn-success">Mettre à jour l'article</button>
                         <button type="button" id="cancel-edit-btn" class="btn-secondary" style="display: none;" onclick="cancelEdit()">Annuler</button>
                     </div>
                 </div>
@@ -125,15 +127,15 @@
 
             <div class="search-stock-wrapper">
                 <span class="search-icon">🔍</span>
-                <input type="text" id="search-stock-bar" placeholder="Rechercher par nom, dossier ou catégorie..." oninput="renderStockTable()">
+                <input type="text" id="search-stock-bar" placeholder="Rechercher un produit à modifier ou consulter..." oninput="renderStockTable()">
             </div>
 
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Dossier / Catégorie</th>
-                        <th>Produit</th>
-                        <th>Prix Achat</th>
+                        <th>Marque / Catégorie</th>
+                        <th>Nom du produit</th>
+                        <th>Prix Base</th>
                         <th>Prix Part.</th>
                         <th>Prix Pro</th>
                         <th>Stock</th>
@@ -171,6 +173,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-    <script src="app.js?v=11"></script>
+    <script src="app.js?v=9"></script>
 </body>
 </html>
