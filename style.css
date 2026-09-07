@@ -165,7 +165,7 @@ h2 {
     margin-bottom: 1.2rem;
 }
 
-/* FORMULAIRE GESTION DU STOCK (2 LIGNES PROPRES) */
+/* FORMULAIRE GESTION DU STOCK */
 #add-product-form {
     background: #ffffff;
     padding: 1.5rem;
@@ -182,19 +182,22 @@ h2 {
 }
 
 .form-row {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr 1fr; /* 5 colonnes pour les 5 champs */
+    display: flex;
+    flex-wrap: nowrap;
     gap: 0.8rem;
+    align-items: flex-end;
 }
 
 .field-item {
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
+    flex: 1;
+    min-width: 0;
 }
 
 .field-item.flex-2 {
-    grid-column: span 1;
+    flex: 1.8;
 }
 
 .field-label {
@@ -224,19 +227,36 @@ h2 {
     box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12);
 }
 
-/* Les boutons passent sur une ligne dédiée en dessous, bien alignés */
 .actions-inline {
-    grid-column: 1 / -1; /* S'étale sur toute la largeur en bas */
     display: flex;
-    gap: 0.8rem;
-    margin-top: 0.5rem;
+    flex-direction: row;
+    gap: 0.4rem;
+    flex: none;
 }
 
 .actions-inline button {
-    height: 46px;
-    flex: 1; /* Les boutons se partagent l'espace proprement */
+    height: 44px;
+    padding: 0 1.2rem;
     margin: 0;
-    font-size: 0.95rem;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 1000px) {
+    .form-row {
+        flex-wrap: wrap;
+    }
+    .field-item {
+        flex: 1 1 45%;
+    }
+    .field-item.flex-2 {
+        flex: 1 1 100%;
+    }
+    .actions-inline {
+        flex: 1 1 100%;
+    }
 }
 
 /* BARRE DE RECHERCHE DANS LE STOCK */
