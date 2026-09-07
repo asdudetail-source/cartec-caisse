@@ -16,7 +16,6 @@ body {
     padding-bottom: 40px;
 }
 
-/* HEADER & NAVIGATION */
 header {
     background-color: #121214;
     color: #ffffff;
@@ -27,7 +26,6 @@ header {
 header h1 {
     font-size: 1.4rem;
     font-weight: 700;
-    letter-spacing: -0.5px;
     margin-bottom: 1.2rem;
 }
 
@@ -46,7 +44,6 @@ nav button {
     font-weight: 600;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: all 0.2s ease;
 }
 
 nav button.active {
@@ -61,15 +58,12 @@ main {
     padding: 0 1rem;
 }
 
-/* TITRES DE SECTION */
 h2 {
     font-size: 1.3rem;
     font-weight: 700;
     margin-bottom: 1.2rem;
-    letter-spacing: -0.3px;
 }
 
-/* CAISSE CONTAINER */
 .caisse-container {
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -83,25 +77,25 @@ h2 {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
-.options-vente {
+.options-vente, .filter-bar {
     display: flex;
     gap: 0.8rem;
-    margin: 1rem 0;
+    margin-bottom: 0.8rem;
 }
 
-.options-vente select, #search-bar {
+.options-vente select, .filter-bar select, #search-bar {
     width: 100%;
-    padding: 0.85rem 1rem;
+    padding: 0.8rem 1rem;
     border: 1px solid #e5e5ea;
     border-radius: 12px;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     background-color: #f9f9fb;
     color: #1c1c1e;
 }
 
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
     gap: 0.8rem;
     margin-top: 1rem;
 }
@@ -110,11 +104,11 @@ h2 {
     background-color: #ffffff;
     border: 1px solid #e5e5ea;
     border-radius: 14px;
-    padding: 1.1rem 0.8rem;
+    padding: 0.9rem 0.7rem;
     text-align: center;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-    transition: all 0.15s ease;
+    position: relative;
 }
 
 .product-card:active {
@@ -122,16 +116,25 @@ h2 {
     background-color: #f2f2f7;
 }
 
+.badge-brand {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #007aff;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+}
+
 .product-card h4 {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 600;
     margin-bottom: 0.4rem;
+    line-height: 1.2;
 }
 
 .product-card .price {
     font-weight: 700;
     color: #007aff;
-    font-size: 1.1rem;
+    font-size: 1rem;
 }
 
 .product-card .stock {
@@ -140,7 +143,6 @@ h2 {
     margin-top: 0.3rem;
 }
 
-/* PANIER */
 .cart-list {
     list-style: none;
     margin: 1rem 0;
@@ -151,9 +153,9 @@ h2 {
 .cart-item {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     padding: 0.8rem 0;
     border-bottom: 1px solid #f2f2f7;
-    font-weight: 500;
 }
 
 .total-row {
@@ -164,7 +166,6 @@ h2 {
     margin-bottom: 1.2rem;
 }
 
-/* FORMULAIRE GESTION DU STOCK */
 #add-product-form {
     background: #ffffff;
     padding: 1.2rem;
@@ -173,49 +174,32 @@ h2 {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
-#add-product-form h3 {
-    margin-bottom: 1.2rem;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #1c1c1e;
-}
-
 .form-row {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-    gap: 0.8rem;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    gap: 0.6rem;
 }
 
 .field-item {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.3rem;
 }
 
 .field-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: #8e8e93;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
 }
 
 .field-item input {
-    height: 44px;
+    height: 42px;
     width: 100%;
-    padding: 0 0.8rem;
+    padding: 0 0.6rem;
     border: 1px solid #d1d1d6;
     border-radius: 10px;
-    font-size: 0.95rem;
-    background-color: #ffffff;
-    color: #1c1c1e;
-    box-sizing: border-box;
-}
-
-.field-item input:focus {
-    border-color: #007aff;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12);
+    font-size: 0.9rem;
 }
 
 .actions-inline {
@@ -226,13 +210,28 @@ h2 {
 }
 
 .actions-inline button {
-    height: 46px;
+    height: 44px;
     flex: 1;
-    margin: 0;
-    font-size: 0.95rem;
 }
 
-/* BARRE DE RECHERCHE DANS LE STOCK */
+.btn-primary, .btn-danger, .btn-success, .btn-secondary, .btn-edit, .btn-export, .btn-reset {
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 1.2rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.btn-primary { background-color: #007aff; color: #ffffff; width: 100%; margin-bottom: 0.5rem; }
+.btn-danger { background-color: #ff3b30; color: #ffffff; }
+.btn-danger-small { background-color: #ff3b30; color: #ffffff; border: none; border-radius: 6px; padding: 0.3rem 0.5rem; font-size: 0.8rem; cursor: pointer; margin-left: 6px; }
+.btn-success { background-color: #ff9500; color: #ffffff; }
+.btn-secondary { background-color: #e5e5ea; color: #1c1c1e; }
+.btn-edit { background-color: #007aff; color: #ffffff; padding: 0.3rem 0.6rem; font-size: 0.8rem; border: none; border-radius: 6px; cursor: pointer; }
+.btn-export { background-color: #5856d6; color: #ffffff; width: 100%; margin-top: 1rem; }
+.btn-reset { background-color: #ff9500; color: #ffffff; width: 100%; margin-top: 0.5rem; }
+
 .search-stock-wrapper {
     position: relative;
     display: flex;
@@ -243,46 +242,18 @@ h2 {
 .search-stock-wrapper .search-icon {
     position: absolute;
     left: 16px;
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: #8e8e93;
-    pointer-events: none;
 }
 
 #search-stock-bar {
     width: 100%;
-    padding: 0.9rem 1rem 0.9rem 3rem;
-    font-size: 1rem;
-    color: #1c1c1e;
-    background-color: #ffffff;
+    padding: 0.8rem 1rem 0.8rem 2.8rem;
+    font-size: 0.95rem;
     border: 1px solid #e5e5ea;
     border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
-    outline: none;
 }
 
-/* BOUTONS GENERAUX */
-.btn-primary, .btn-danger, .btn-success, .btn-secondary, .btn-edit, .btn-export, .btn-reset {
-    border: none;
-    border-radius: 10px;
-    padding: 0.75rem 1.2rem;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-primary { background-color: #007aff; color: #ffffff; width: 100%; margin-bottom: 0.5rem; }
-.btn-danger { background-color: #ff3b30; color: #ffffff; }
-.btn-success { background-color: #ff9500; color: #ffffff; }
-.btn-secondary { background-color: #e5e5ea; color: #1c1c1e; }
-.btn-edit { background-color: #007aff; color: #ffffff; padding: 0.4rem 0.8rem; font-size: 0.82rem; margin-right: 4px; }
-.btn-export { background-color: #5856d6; color: #ffffff; width: 100%; margin-top: 1rem; }
-.btn-reset { background-color: #ff9500; color: #ffffff; width: 100%; margin-top: 0.5rem; }
-
-/* TABLEAU DES DONNEES */
 .data-table {
     width: 100%;
     border-collapse: separate;
@@ -290,84 +261,42 @@ h2 {
     background: #ffffff;
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
 .data-table th, .data-table td {
-    padding: 1rem 1.2rem;
+    padding: 0.8rem 1rem;
     text-align: left;
 }
 
 .data-table th {
     background-color: #f9f9fb;
     color: #8e8e93;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
     font-weight: 700;
-    letter-spacing: 0.5px;
     border-bottom: 1px solid #e5e5ea;
 }
 
 .data-table td {
     border-bottom: 1px solid #f2f2f7;
-    font-size: 0.95rem;
-    color: #1c1c1e;
+    font-size: 0.9rem;
 }
 
-/* OPTIMISATION AVANCÉE SMARTPHONE (<= 768px) */
+.tag {
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.tag-blue { background: #e5f1ff; color: #007aff; }
+.tag-orange { background: #fff3e5; color: #ff9500; }
+
 @media screen and (max-width: 768px) {
-    main {
-        padding: 0 0.5rem;
-        margin: 1rem auto;
-    }
-
-    nav {
-        flex-direction: column;
-        width: 100%;
-    }
-
-    nav button {
-        width: 100%;
-    }
-
-    .caisse-container {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-
-    .options-vente {
-        flex-direction: column;
-    }
-
-    /* Formulaire d'ajout totalement verticalisé */
-    .form-row {
-        grid-template-columns: 1fr !important;
-        gap: 0.8rem;
-    }
-
-    .field-label {
-        white-space: normal;
-    }
-
-    .actions-inline {
-        flex-direction: column;
-    }
-
-    .actions-inline button {
-        width: 100%;
-    }
-
-    /* Défilement fluide des tableaux sur mobile */
-    .data-table {
-        display: block;
-        width: 100%;
-        overflow-x: auto;
-        white-space: nowrap;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .data-table th, .data-table td {
-        padding: 0.75rem 0.6rem;
-        font-size: 0.85rem;
-    }
+    main { padding: 0 0.5rem; }
+    nav { flex-direction: column; }
+    .caisse-container { grid-template-columns: 1fr; }
+    .options-vente, .filter-bar { flex-direction: column; }
+    .form-row { grid-template-columns: 1fr !important; }
+    .data-table { display: block; overflow-x: auto; white-space: nowrap; }
 }
