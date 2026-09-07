@@ -72,28 +72,28 @@
                 <h3 id="form-title">+ Ajouter un produit</h3>
                 <div class="form-row">
                     <div class="field-item flex-2">
-                        <input type="text" id="prod-name" placeholder="Nom du produit" required>
                         <span class="field-label">Nom du produit</span>
+                        <input type="text" id="prod-name" placeholder="Ex: Nettoyant Jantes" required>
                     </div>
 
                     <div class="field-item">
-                        <input type="number" id="prod-stock" placeholder="Stock" min="0" required>
                         <span class="field-label">Stock dispo</span>
+                        <input type="number" id="prod-stock" placeholder="0" min="0" required>
                     </div>
 
                     <div class="field-item">
-                        <input type="number" id="prod-cost" placeholder="Prix Base (€)" step="0.01" required>
-                        <span class="field-label">Prix Base</span>
+                        <span class="field-label">Prix Base (€)</span>
+                        <input type="number" id="prod-cost" placeholder="0.00" step="0.01" required>
                     </div>
 
                     <div class="field-item">
-                        <input type="number" id="prod-price-part" placeholder="Prix Part. (€)" step="0.01" required>
-                        <span class="field-label">Prix Particulier</span>
+                        <span class="field-label">Prix Particulier (€)</span>
+                        <input type="number" id="prod-price-part" placeholder="0.00" step="0.01" required>
                     </div>
 
                     <div class="field-item">
-                        <input type="number" id="prod-price-pro" placeholder="Prix Pro (€)" step="0.01" required>
-                        <span class="field-label">Prix Pro</span>
+                        <span class="field-label">Prix Pro (€)</span>
+                        <input type="number" id="prod-price-pro" placeholder="0.00" step="0.01" required>
                     </div>
 
                     <div class="field-item actions-inline">
@@ -147,6 +147,6 @@
         </section>
     </main>
 
-    <script src="app.js?v=6"></script>
+    <script src="app.js?v=7"></script>
 </body>
 </html>
