@@ -2,386 +2,151 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caisse & Stock - L'As Du Détail</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Caisse & Stock Cartec</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Cartec Caisse">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <link rel="stylesheet" href="style.css">
     <style>
-        :root {
-            --bg-color: #f4f5f7;
-            --header-bg: #111;
-            --card-bg: #ffffff;
-            --accent-blue: #007aff;
-            --accent-red: #ff3b30;
-            --accent-green: #34c759;
-            --border-color: #e5e5ea;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            margin: 0;
-            padding: 0;
-            color: #1c1c1e;
-        }
-
-        /* En-tête Navigation */
-        header {
-            background-color: var(--header-bg);
-            color: white;
-            padding: 15px 20px;
-            text-align: center;
-        }
-        header h1 { margin: 0 0 15px 0; font-size: 20px; }
-        
-        .nav-tabs {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-        .tab-btn {
-            background: #2c2c2e;
-            color: #8e8e93;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .tab-btn.active {
-            background: var(--accent-blue);
-            color: white;
-        }
-
-        /* Conteneur Principal */
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 0 20px;
-        }
-
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-
-        /* Écran Caisse */
-        .caisse-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .caisse-controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        select, input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 14px;
-        }
-
-        .search-bar { margin-bottom: 20px; }
-
-        .btn {
-            background: var(--accent-blue);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-        }
-        .btn-red { background: var(--accent-red); margin-top: 8px; }
-
-        /* Ticket de Caisse */
-        .ticket-items {
-            min-height: 150px;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 15px;
-        }
-        .ticket-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        .total-price {
-            font-size: 22px;
-            font-weight: bold;
-            text-align: right;
-            margin-bottom: 15px;
-        }
-
-        /* Formulaire Gestion Stock */
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            font-size: 13px;
-            color: #666;
-        }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Caisse & Stock</h1>
-        <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchTab('caisse')">Caisse / Vente</button>
-            <button class="tab-btn" onclick="switchTab('stock')">Gestion Stock</button>
-            <button class="tab-btn" onclick="switchTab('historique')">Historique Ventes</button>
-        </div>
+        <h1>Caisse &amp; Stock Cartec</h1>
+        <nav>
+            <button id="tab-caisse" class="active" onclick="switchTab('caisse')">Caisse / Vente</button>
+            <button id="tab-stock" onclick="switchTab('stock')">Gestion Stock</button>
+            <button id="tab-historique" onclick="switchTab('historique')">Historique Ventes</button>
+        </nav>
     </header>
 
-    <div class="container">
-        
-        <!-- ONGLET 1: CAISSE / VENTE -->
-        <div id="tab-caisse" class="tab-content active">
-            <div class="caisse-grid">
-                <div class="card">
-                    <div class="caisse-controls">
-                        <select id="tarifSelect" onchange="actualiserPanierUI()">
+    <main>
+        <!-- SECTION CAISSE -->
+        <section id="section-caisse" class="tab-content active">
+            <div class="caisse-container">
+                <div class="catalog-panel">
+                    <h2>Catalogue</h2>
+                    
+                    <div class="options-vente">
+                        <select id="select-client" onchange="renderProducts()">
                             <option value="particulier">Tarif Particulier</option>
                             <option value="pro">Tarif Professionnel</option>
                         </select>
-                        <select id="canalSelect">
-                            <option value="atelier">Vente Atelier</option>
-                            <option value="enlèvement">Enlèvement / Drive</option>
+                        <select id="select-canal">
+                            <option value="facture">Canal Facturé</option>
+                            <option value="black">Canal Cash / Black</option>
                         </select>
                     </div>
-                    <div class="search-bar">
-                        <input type="text" id="searchArticle" placeholder="Rechercher un article..." oninput="rechercherArticle()">
-                        <div id="searchResults" style="margin-top: 10px;"></div>
-                    </div>
+
+                    <input type="text" id="search-bar" placeholder="🔍 Rechercher un article..." oninput="renderProducts()">
+
+                    <div id="product-grid" class="product-grid"></div>
                 </div>
 
-                <div class="card">
+                <div class="cart-panel">
                     <h2>Ticket de caisse</h2>
-                    <div class="ticket-items" id="ticketItems">
-                        <p style="color: #8e8e93; text-align: center;">Panier vide</p>
+                    <ul id="cart-list" class="cart-list"></ul>
+                    <div class="cart-summary">
+                        <div class="total-row">
+                            <span>Total :</span>
+                            <span id="cart-total">0.00 €</span>
+                        </div>
+                        <button class="btn-primary" onclick="checkout()">Valider la vente</button>
+                        <button class="btn-danger" onclick="clearCart()">Vider le panier</button>
                     </div>
-                    <div class="total-price">Total : <span id="totalMontant">0.00</span> €</div>
-                    <button class="btn" onclick="validerVente()">Valider la vente</button>
-                    <button class="btn btn-red" onclick="viderPanier()">Vider le panier</button>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- ONGLET 2: GESTION STOCK (Uniquement la création) -->
-        <div id="tab-stock" class="tab-content">
-            <div class="card" style="max-width: 600px; margin: 0 auto;">
-                <h2>+ Ajouter / Modifier un produit</h2>
-                <form id="formProduit" onsubmit="enregistrerProduit(event)">
-                    <div class="form-group">
-                        <label>NOM DU PRODUIT</label>
-                        <input type="text" id="nomProduit" placeholder="Ex: Green Star 1L" required>
+        <!-- SECTION GESTION DU STOCK -->
+        <section id="section-stock" class="tab-content">
+            <h2>Inventaire &amp; Ajout Produits</h2>
+            <form id="add-product-form" onsubmit="handleAddProduct(event)">
+                <h3 id="form-title">+ Ajouter un produit</h3>
+                <div class="form-row">
+                    <div class="field-item flex-2">
+                        <input type="text" id="prod-name" placeholder="Nom du produit" required>
+                        <span class="field-label">Nom du produit</span>
                     </div>
-                    <div class="form-group">
-                        <label>MARQUE / GROUPE</label>
-                        <input type="text" id="marqueProduit" placeholder="Ex: Koch-Chemie" required>
-                    </div>
-                    <div class="form-group">
-                        <label>CATÉGORIE</label>
-                        <input type="text" id="categorieProduit" placeholder="Ex: Nettoyant Polyvalent" required>
-                    </div>
-                    <div class="form-group">
-                        <label>STOCK DISPONIBLE</label>
-                        <input type="number" id="stockProduit" value="0" min="0" required>
-                    </div>
-                    <div class="form-group">
-                        <label>PRIX ACHAT (€)</label>
-                        <input type="number" step="0.01" id="prixAchat" placeholder="0.00" required>
-                    </div>
-                    <div class="form-group">
-                        <label>PRIX PARTICULIER (€)</label>
-                        <input type="number" step="0.01" id="prixParticulier" placeholder="0.00" required>
-                    </div>
-                    <div class="form-group">
-                        <label>PRIX PROFESSIONNEL (€)</label>
-                        <input type="number" step="0.01" id="prixPro" placeholder="0.00" required>
-                    </div>
-                    <button type="submit" class="btn" style="background: #ff9500;">+ Enregistrer le produit</button>
-                </form>
-            </div>
-        </div>
 
-        <!-- ONGLET 3: HISTORIQUE VENTES -->
-        <div id="tab-historique" class="tab-content">
-            <div class="card">
-                <h2>Historique des Ventes</h2>
-                <div id="historiqueListe">
-                    <p style="color: #8e8e93;">Aucune vente enregistrée pour le moment.</p>
+                    <div class="field-item">
+                        <input type="number" id="prod-stock" placeholder="Stock" min="0" required>
+                        <span class="field-label">Stock dispo</span>
+                    </div>
+
+                    <div class="field-item">
+                        <input type="number" id="prod-cost" placeholder="Prix Base (€)" step="0.01" required>
+                        <span class="field-label">Prix Base</span>
+                    </div>
+
+                    <div class="field-item">
+                        <input type="number" id="prod-price-part" placeholder="Prix Part. (€)" step="0.01" required>
+                        <span class="field-label">Prix Particulier</span>
+                    </div>
+
+                    <div class="field-item">
+                        <input type="number" id="prod-price-pro" placeholder="Prix Pro (€)" step="0.01" required>
+                        <span class="field-label">Prix Pro</span>
+                    </div>
+
+                    <div class="field-item actions-inline">
+                        <button type="submit" id="submit-btn" class="btn-success">Mettre à jour l'article</button>
+                        <button type="button" id="cancel-edit-btn" class="btn-secondary" style="display: none;" onclick="cancelEdit()">Annuler</button>
+                    </div>
                 </div>
+            </form>
+
+            <!-- BARRE DE RECHERCHE DU STOCK -->
+            <div class="search-stock-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-stock-bar" placeholder="Rechercher un produit à modifier ou consulter..." oninput="renderStockTable()">
             </div>
-        </div>
 
-    </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nom du produit</th>
+                        <th>Prix Base</th>
+                        <th>Prix Part.</th>
+                        <th>Prix Pro</th>
+                        <th>Stock</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="stock-table-body"></tbody>
+            </table>
+        </section>
 
-    <script>
-        // Initialisation de la base de données locale
-        let produits = JSON.parse(localStorage.getItem('produits_db')) || [];
-        let ventes = JSON.parse(localStorage.getItem('ventes_db')) || [];
-        let panier = [];
+        <!-- SECTION HISTORIQUE -->
+        <section id="section-historique" class="tab-content">
+            <h2>Historique des Ventes</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date &amp; Heure</th>
+                        <th>Canal</th>
+                        <th>Tarif</th>
+                        <th>Détail des articles</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="history-table-body"></tbody>
+            </table>
 
-        // Gestion de la navigation par onglets
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            event.target.classList.add('active');
-            document.getElementById('tab-' + tabName).classList.add('active');
+            <div class="rep-actions">
+                <button class="btn-export" onclick="exportData()">Copier le bilan (Stock &amp; Ventes)</button>
+                <button class="btn-reset" onclick="resetAll()">Vider catalogue et ventes</button>
+            </div>
+        </section>
+    </main>
 
-            if(tabName === 'historique') afficherHistorique();
-        }
-
-        // Enregistrement d'un produit (Stock)
-        function enregistrerProduit(e) {
-            e.preventDefault();
-            
-            const nouveauProduit = {
-                id: Date.now(),
-                nom: document.getElementById('nomProduit').value,
-                marque: document.getElementById('marqueProduit').value,
-                categorie: document.getElementById('categorieProduit').value,
-                stock: parseInt(document.getElementById('stockProduit').value),
-                prixAchat: parseFloat(document.getElementById('prixAchat').value),
-                prixParticulier: parseFloat(document.getElementById('prixParticulier').value),
-                prixPro: parseFloat(document.getElementById('prixPro').value)
-            };
-
-            produits.push(nouveauProduit);
-            localStorage.setItem('produits_db', JSON.stringify(produits));
-
-            document.getElementById('formProduit').reset();
-            alert('Produit enregistré avec succès dans le stock !');
-        }
-
-        // Recherche d'article dans la caisse
-        function rechercherArticle() {
-            const query = document.getElementById('searchArticle').value.toLowerCase();
-            const resultsContainer = document.getElementById('searchResults');
-            resultsContainer.innerHTML = '';
-
-            if (query.trim() === '') return;
-
-            const matches = produits.filter(p => 
-                p.nom.toLowerCase().includes(query) || 
-                p.marque.toLowerCase().includes(query)
-            );
-
-            matches.forEach(p => {
-                const item = document.createElement('div');
-                item.style.padding = '8px';
-                item.style.borderBottom = '1px solid #eee';
-                item.style.cursor = 'pointer';
-                item.innerHTML = `<strong>${p.nom}</strong> (${p.marque}) - Stock: ${p.stock}`;
-                item.onclick = () => ajouterAuPanier(p);
-                resultsContainer.appendChild(item);
-            });
-        }
-
-        // Gestion du panier
-        function ajouterAuPanier(produit) {
-            const ex = panier.find(item => item.id === produit.id);
-            if (ex) {
-                if (ex.qte < produit.stock) ex.qte++;
-                else alert('Stock insuffisant !');
-            } else {
-                if (produit.stock > 0) panier.push({ ...produit, qte: 1 });
-                else alert('Produit en rupture de stock !');
-            }
-            actualiserPanierUI();
-        }
-
-        function actualiserPanierUI() {
-            const typeTarif = document.getElementById('tarifSelect').value;
-            const container = document.getElementById('ticketItems');
-            container.innerHTML = '';
-            let total = 0;
-
-            panier.forEach(item => {
-                const prix = typeTarif === 'pro' ? item.prixPro : item.prixParticulier;
-                const ligneTotal = prix * item.qte;
-                total += ligneTotal;
-
-                container.innerHTML += `
-                    <div class="ticket-row">
-                        <span>${item.nom} (x${item.qte})</span>
-                        <span>${ligneTotal.toFixed(2)} €</span>
-                    </div>
-                `;
-            });
-
-            document.getElementById('totalMontant').innerText = total.toFixed(2);
-        }
-
-        function viderPanier() {
-            panier = [];
-            actualiserPanierUI();
-        }
-
-        // Validation de la vente
-        function validerVente() {
-            if (panier.length === 0) return alert('Le panier est vide.');
-
-            const typeTarif = document.getElementById('tarifSelect').value;
-            let totalVente = 0;
-
-            panier.forEach(item => {
-                const pIndex = produits.findIndex(p => p.id === item.id);
-                if (pIndex !== -1) {
-                    produits[pIndex].stock -= item.qte;
-                }
-                totalVente += (typeTarif === 'pro' ? item.prixPro : item.prixParticulier) * item.qte;
-            });
-
-            // Enregistrer la transaction
-            ventes.push({
-                id: Date.now(),
-                date: new Date().toLocaleString(),
-                total: totalVente,
-                articles: [...panier]
-            });
-
-            localStorage.setItem('produits_db', JSON.stringify(produits));
-            localStorage.setItem('ventes_db', JSON.stringify(ventes));
-
-            viderPanier();
-            document.getElementById('searchArticle').value = '';
-            document.getElementById('searchResults').innerHTML = '';
-            alert('Vente validée et stock mis à jour !');
-        }
-
-        // Affichage de l'historique
-        function afficherHistorique() {
-            const container = document.getElementById('historiqueListe');
-            if (ventes.length === 0) {
-                container.innerHTML = '<p style="color: #8e8e93;">Aucune vente enregistrée.</p>';
-                return;
-            }
-
-            container.innerHTML = ventes.map(v => `
-                <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
-                    <strong>Vente #${v.id}</strong> - ${v.date}<br>
-                    Total: <strong>${v.total.toFixed(2)} €</strong>
-                </div>
-            `).join('');
-        }
-    </script>
+    <script src="app.js?v=6"></script>
 </body>
 </html>
