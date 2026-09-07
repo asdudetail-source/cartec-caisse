@@ -1,158 +1,112 @@
-// CONFIGURATION FIREBASE
-const firebaseConfig = {
-    databaseURL: "https://caisse-cartec-default-rtdb.europe-west1.firebasedatabase.app"
-};
+let stock = JSON.parse(localStorage.getItem('cartec_stock')) || [
+    { id: 1, name: "Nettoyant Jantes Cartec", cost: 8.00, pricePart: 18.00, pricePro: 12.00, stock: 10 },
+    { id: 2, name: "Shampoing Carosserie", cost: 6.00, pricePart: 15.00, pricePro: 10.00, stock: 15 }
+];
 
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-const db = firebase.database();
-
-let products = [];
-let salesHistory = [];
 let cart = [];
+let salesHistory = JSON.parse(localStorage.getItem('cartec_history')) || [];
 let editingProductId = null;
 
-// SYNCHRONISATION EN TEMPS RÉEL AVEC FIREBASE
-db.ref("products").on("value", (snapshot) => {
-    const data = snapshot.val();
-    products = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
-    updateDropdowns();
-    renderProducts();
-    renderStockTable();
-});
+function saveData() {
+    localStorage.setItem('cartec_stock', JSON.stringify(stock));
+    localStorage.setItem('cartec_history', JSON.stringify(salesHistory));
+}
 
-db.ref("salesHistory").on("value", (snapshot) => {
-    const data = snapshot.val();
-    salesHistory = data ? Object.values(data) : [];
-    renderHistoryTable();
-});
-
-// GESTION DES ONGLETS
 function switchTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
-
-    document.getElementById(`section-${tabName}`).classList.add('active');
-    document.getElementById(`tab-${tabName}`).classList.add('active');
+    
+    const targetSection = document.getElementById('section-' + tabName);
+    const targetTab = document.getElementById('tab-' + tabName);
+    
+    if (targetSection) targetSection.classList.add('active');
+    if (targetTab) targetTab.classList.add('active');
+    
+    renderAll();
 }
 
-// METTRE A JOUR LES MENUS DE SELECTION MARQUE & CATEGORIE
-function updateDropdowns() {
-    const brands = [...new Set(products.map(p => p.brand).filter(Boolean))].sort();
-    const categories = [...new Set(products.map(p => p.category).filter(Boolean))].sort();
-
-    // Filtres Caisse
-    const brandSelect = document.getElementById("filter-brand");
-    const catSelect = document.getElementById("filter-category");
-
-    const currentBrand = brandSelect.value;
-    const currentCat = catSelect.value;
-
-    brandSelect.innerHTML = '<option value="">Toutes les marques</option>' + brands.map(b => `<option value="${b}">${b}</option>`).join("");
-    catSelect.innerHTML = '<option value="">Toutes les catégories</option>' + categories.map(c => `<option value="${c}">${c}</option>`).join("");
-
-    brandSelect.value = currentBrand;
-    catSelect.value = currentCat;
-
-    // Autocomplétion Formulaire Stock
-    document.getElementById("brands-list").innerHTML = brands.map(b => `<option value="${b}">`).join("");
-    document.getElementById("categories-list").innerHTML = categories.map(c => `<option value="${c}">`).join("");
+function renderAll() {
+    renderProducts();
+    renderCart();
+    renderStockTable();
+    renderHistoryTable();
 }
 
-// AFFICHAGE DES PRODUITS DANS LA CAISSE
+/* CAISSE */
 function renderProducts() {
-    const grid = document.getElementById("product-grid");
-    const clientType = document.getElementById("select-client").value;
-    const search = document.getElementById("search-bar").value.toLowerCase();
-    const selectedBrand = document.getElementById("filter-brand").value;
-    const selectedCat = document.getElementById("filter-category").value;
+    const grid = document.getElementById('product-grid');
+    if (!grid) return;
 
-    grid.innerHTML = "";
+    const clientType = document.getElementById('select-client').value;
+    const searchQuery = document.getElementById('search-bar').value.toLowerCase();
+    grid.innerHTML = '';
 
-    const filtered = products.filter(p => {
-        const matchesSearch = p.name.toLowerCase().includes(search);
-        const matchesBrand = selectedBrand === "" || p.brand === selectedBrand;
-        const matchesCat = selectedCat === "" || p.category === selectedCat;
-        return matchesSearch && matchesBrand && matchesCat;
-    });
+    const filteredStock = stock.filter(p => p.name.toLowerCase().includes(searchQuery));
 
-    if (filtered.length === 0) {
-        grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #8e8e93; padding: 2rem 0;">Aucun produit ne correspond.</p>`;
+    if (filteredStock.length === 0) {
+        grid.innerHTML = '<p style="grid-column: 1/-1; color: #8e8e93; font-style: italic;">Aucun produit trouvé.</p>';
         return;
     }
 
-    filtered.forEach(p => {
-        const price = clientType === "pro" ? p.pricePro : p.pricePart;
-        const card = document.createElement("div");
-        card.className = "product-card";
-        card.onclick = () => addToCart(p.id);
-
+    filteredStock.forEach(prod => {
+        const currentPrice = clientType === 'pro' ? prod.pricePro : prod.pricePart;
+        
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.onclick = () => addToCart(prod.id);
         card.innerHTML = `
-            <div class="badge-brand">${p.brand || 'Général'}</div>
-            <h4>${p.name}</h4>
-            <div class="price">${parseFloat(price).toFixed(2)} €</div>
-            <div class="stock">Stock: ${p.stock}</div>
+            <h4>${prod.name}</h4>
+            <div class="price">${currentPrice.toFixed(2)} €</div>
+            <div class="stock">Stock : ${prod.stock}</div>
         `;
         grid.appendChild(card);
     });
 }
 
-// PANIER
 function addToCart(productId) {
-    const product = products.find(p => p.id === productId);
+    const product = stock.find(p => p.id === productId);
+    const clientType = document.getElementById('select-client').value;
+
     if (!product || product.stock <= 0) {
-        alert("Stock épuisé !");
+        alert("Produit en rupture de stock !");
         return;
     }
 
-    const item = cart.find(i => i.id === productId);
-    if (item) {
-        if (item.qty < product.stock) {
-            item.qty++;
+    const priceToApply = clientType === 'pro' ? product.pricePro : product.pricePart;
+    const cartItem = cart.find(item => item.id === productId);
+
+    if (cartItem) {
+        if (cartItem.qty < product.stock) {
+            cartItem.qty++;
         } else {
-            alert("Stock maximum atteint dans le panier !");
+            alert("Stock maximum atteint pour cet article !");
         }
     } else {
-        cart.push({ id: product.id, name: product.name, pricePart: product.pricePart, pricePro: product.pricePro, qty: 1 });
+        cart.push({ id: product.id, name: product.name, price: priceToApply, qty: 1 });
     }
     renderCart();
 }
 
 function renderCart() {
-    const cartList = document.getElementById("cart-list");
-    const totalEl = document.getElementById("cart-total");
-    const clientType = document.getElementById("select-client").value;
+    const cartList = document.getElementById('cart-list');
+    const totalEl = document.getElementById('cart-total');
+    if (!cartList || !totalEl) return;
 
-    cartList.innerHTML = "";
+    cartList.innerHTML = '';
+    
     let total = 0;
-
-    cart.forEach((item, index) => {
-        const price = clientType === "pro" ? item.pricePro : item.pricePart;
-        const itemTotal = price * item.qty;
+    cart.forEach(item => {
+        const itemTotal = item.price * item.qty;
         total += itemTotal;
-
-        const li = document.createElement("li");
-        li.className = "cart-item";
-        li.innerHTML = `
-            <div>
-                <strong>${item.name}</strong><br>
-                <small>${item.qty} x ${parseFloat(price).toFixed(2)} €</small>
-            </div>
-            <div>
+        cartList.innerHTML += `
+            <li class="cart-item">
+                <span>${item.name} (x${item.qty})</span>
                 <span>${itemTotal.toFixed(2)} €</span>
-                <button class="btn-danger-small" onclick="removeFromCart(${index})">✕</button>
-            </div>
+            </li>
         `;
-        cartList.appendChild(li);
     });
-
-    totalEl.textContent = `${total.toFixed(2)} €`;
-}
-
-function removeFromCart(index) {
-    cart.splice(index, 1);
-    renderCart();
+    
+    totalEl.innerText = total.toFixed(2) + ' €';
 }
 
 function clearCart() {
@@ -161,166 +115,210 @@ function clearCart() {
 }
 
 function checkout() {
-    if (cart.length === 0) return alert("Le panier est vide !");
+    if (cart.length === 0) {
+        alert("Le panier est vide.");
+        return;
+    }
 
-    const clientType = document.getElementById("select-client").value;
-    const canal = document.getElementById("select-canal").value;
-    let total = 0;
+    const clientType = document.getElementById('select-client').value === 'pro' ? 'Professionnel' : 'Particulier';
+    const canalType = document.getElementById('select-canal').value === 'facture' ? 'Facturé' : 'Cash / Black';
 
-    const itemsSummary = cart.map(item => {
-        const price = clientType === "pro" ? item.pricePro : item.pricePart;
-        total += price * item.qty;
-        
-        // Mettre à jour le stock dans Firebase
-        const prod = products.find(p => p.id === item.id);
+    cart.forEach(item => {
+        const prod = stock.find(p => p.id === item.id);
         if (prod) {
-            const newStock = Math.max(0, prod.stock - item.qty);
-            db.ref(`products/${item.id}`).update({ stock: newStock });
+            prod.stock -= item.qty;
         }
+    });
 
-        return `${item.name} (x${item.qty})`;
-    }).join(", ");
-
-    const sale = {
-        date: new Date().toLocaleString("fr-FR"),
-        canal: canal === "facture" ? "Facturé" : "Cash / Black",
-        type: clientType === "pro" ? "Professionnel" : "Particulier",
-        details: itemsSummary,
+    const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const saleRecord = {
+        date: new Date().toLocaleString('fr-FR'),
+        canal: canalType,
+        tarif: clientType,
+        items: cart.map(i => `${i.name} (x${i.qty})`).join(', '),
         total: total.toFixed(2)
     };
 
-    db.ref("salesHistory").push(sale);
+    salesHistory.unshift(saleRecord);
+    saveData();
     clearCart();
+    renderAll();
     alert("Vente enregistrée avec succès !");
 }
 
-// FORMULAIRE PRODUIT (AJOUT / EDIT)
-function handleAddProduct(e) {
-    e.preventDefault();
-    const name = document.getElementById("prod-name").value.trim();
-    const brand = document.getElementById("prod-brand").value.trim() || "Général";
-    const category = document.getElementById("prod-category").value.trim() || "Divers";
-    const stock = parseInt(document.getElementById("prod-stock").value);
-    const cost = parseFloat(document.getElementById("prod-cost").value);
-    const pricePart = parseFloat(document.getElementById("prod-price-part").value);
-    const pricePro = parseFloat(document.getElementById("prod-price-pro").value);
+/* GESTION DU STOCK */
+function renderStockTable() {
+    const body = document.getElementById('stock-table-body');
+    if (!body) return;
 
-    const productData = { name, brand, category, stock, cost, pricePart, pricePro };
+    const searchInput = document.getElementById('search-stock-bar');
+    const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
+    
+    body.innerHTML = '';
 
-    if (editingProductId) {
-        db.ref(`products/${editingProductId}`).update(productData);
-        editingProductId = null;
-    } else {
-        db.ref("products").push(productData);
+    const filteredStock = stock.filter(p => p.name.toLowerCase().includes(searchQuery));
+
+    if (filteredStock.length === 0) {
+        body.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #8e8e93; padding: 1.2rem;">Aucun produit trouvé</td></tr>`;
+        return;
     }
 
-    document.getElementById("add-product-form").reset();
-    document.getElementById("submit-btn").textContent = "+ Ajouter l'article";
-    document.getElementById("cancel-edit-btn").style.display = "none";
+    filteredStock.forEach(p => {
+        const costVal = p.cost !== undefined ? p.cost.toFixed(2) : '0.00';
+        body.innerHTML += `
+            <tr>
+                <td><strong>${p.name}</strong></td>
+                <td>${costVal} €</td>
+                <td>${p.pricePart.toFixed(2)} €</td>
+                <td>${p.pricePro.toFixed(2)} €</td>
+                <td>${p.stock}</td>
+                <td>
+                    <button class="btn-edit" onclick="editProduct(${p.id})">Modifier</button>
+                    <button class="btn-danger" onclick="deleteProduct(${p.id})">Supprimer</button>
+                </td>
+            </tr>
+        `;
+    });
 }
 
 function editProduct(id) {
-    const p = products.find(prod => prod.id === id);
-    if (!p) return;
+    const prod = stock.find(p => p.id === id);
+    if (!prod) return;
+
+    document.getElementById('prod-name').value = prod.name;
+    document.getElementById('prod-stock').value = prod.stock;
+    document.getElementById('prod-cost').value = prod.cost || 0;
+    document.getElementById('prod-price-part').value = prod.pricePart;
+    document.getElementById('prod-price-pro').value = prod.pricePro;
 
     editingProductId = id;
-    document.getElementById("prod-name").value = p.name;
-    document.getElementById("prod-brand").value = p.brand || "";
-    document.getElementById("prod-category").value = p.category || "";
-    document.getElementById("prod-stock").value = p.stock;
-    document.getElementById("prod-cost").value = p.cost;
-    document.getElementById("prod-price-part").value = p.pricePart;
-    document.getElementById("prod-price-pro").value = p.pricePro;
 
-    document.getElementById("submit-btn").textContent = "Mettre à jour l'article";
-    document.getElementById("cancel-edit-btn").style.display = "inline-block";
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('form-title').innerText = "✏️ Modifier l'article";
+    
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.innerText = "Mettre à jour l'article";
+
+    document.getElementById('cancel-edit-btn').style.display = "inline-block";
+    document.getElementById('add-product-form').scrollIntoView({ behavior: 'smooth' });
 }
 
 function cancelEdit() {
     editingProductId = null;
-    document.getElementById("add-product-form").reset();
-    document.getElementById("submit-btn").textContent = "+ Ajouter l'article";
-    document.getElementById("cancel-edit-btn").style.display = "none";
+    document.getElementById('add-product-form').reset();
+    document.getElementById('form-title').innerText = "+ Ajouter un produit";
+    
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.innerText = "Enregistrer";
+
+    document.getElementById('cancel-edit-btn').style.display = "none";
+}
+
+function handleAddProduct(e) {
+    e.preventDefault();
+
+    const name = document.getElementById('prod-name').value;
+    const stockQty = parseInt(document.getElementById('prod-stock').value);
+    const cost = parseFloat(document.getElementById('prod-cost').value);
+    const pricePart = parseFloat(document.getElementById('prod-price-part').value);
+    const pricePro = parseFloat(document.getElementById('prod-price-pro').value);
+
+    if (editingProductId !== null) {
+        const prod = stock.find(p => p.id === editingProductId);
+        if (prod) {
+            prod.name = name;
+            prod.stock = stockQty;
+            prod.cost = cost;
+            prod.pricePart = pricePart;
+            prod.pricePro = pricePro;
+        }
+        cancelEdit();
+    } else {
+        const existingProduct = stock.find(p => p.name.toLowerCase() === name.toLowerCase());
+        if (existingProduct) {
+            existingProduct.stock += stockQty;
+            existingProduct.cost = cost;
+            existingProduct.pricePart = pricePart;
+            existingProduct.pricePro = pricePro;
+        } else {
+            stock.push({ id: Date.now(), name, cost, pricePart, pricePro, stock: stockQty });
+        }
+        e.target.reset();
+    }
+
+    saveData();
+    renderAll();
 }
 
 function deleteProduct(id) {
-    if (confirm("Supprimer définitivement cet article ?")) {
-        db.ref(`products/${id}`).remove();
+    if (confirm("Voulez-vous vraiment supprimer cet article ?")) {
+        stock = stock.filter(p => p.id !== id);
+        saveData();
+        renderAll();
     }
 }
 
-// TABLEAU STOCK
-function renderStockTable() {
-    const tbody = document.getElementById("stock-table-body");
-    const search = document.getElementById("search-stock-bar").value.toLowerCase();
-    tbody.innerHTML = "";
-
-    const filtered = products.filter(p => 
-        p.name.toLowerCase().includes(search) || 
-        (p.brand && p.brand.toLowerCase().includes(search)) ||
-        (p.category && p.category.toLowerCase().includes(search))
-    );
-
-    if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Aucun produit trouvé</td></tr>`;
-        return;
-    }
-
-    filtered.forEach(p => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td><small style="color:#007aff; font-weight:bold;">${p.brand || 'Général'}</small><br><small style="color:#8e8e93;">${p.category || 'Divers'}</small></td>
-            <td><strong>${p.name}</strong></td>
-            <td>${parseFloat(p.cost).toFixed(2)} €</td>
-            <td>${parseFloat(p.pricePart).toFixed(2)} €</td>
-            <td>${parseFloat(p.pricePro).toFixed(2)} €</td>
-            <td><strong>${p.stock}</strong></td>
-            <td>
-                <button class="btn-edit" onclick="editProduct('${p.id}')">✏️ Edit</button>
-                <button class="btn-danger-small" onclick="deleteProduct('${p.id}')">🗑️</button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-// HISTORIQUE
+/* HISTORIQUE ET BILAN */
 function renderHistoryTable() {
-    const tbody = document.getElementById("history-table-body");
-    tbody.innerHTML = "";
+    const body = document.getElementById('history-table-body');
+    if (!body) return;
 
-    salesHistory.slice().reverse().forEach(sale => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${sale.date}</td>
-            <td><span class="tag ${sale.canal === 'Facturé' ? 'tag-blue' : 'tag-orange'}">${sale.canal}</span></td>
-            <td>${sale.type}</td>
-            <td>${sale.details}</td>
-            <td><strong>${sale.total} €</strong></td>
+    body.innerHTML = '';
+    salesHistory.forEach(s => {
+        body.innerHTML += `
+            <tr>
+                <td>${s.date}</td>
+                <td><strong>${s.canal}</strong></td>
+                <td>${s.tarif}</td>
+                <td>${s.items}</td>
+                <td><strong>${s.total} €</strong></td>
+            </tr>
         `;
-        tbody.appendChild(tr);
     });
 }
 
 function exportData() {
-    let report = "=== BILAN DU STOCK ===\n";
-    products.forEach(p => {
-        report += `[${p.brand || 'Sans marque'}] ${p.name} - Stock: ${p.stock} - Part: ${p.pricePart}€ - Pro: ${p.pricePro}€\n`;
-    });
+    let blackSales = salesHistory.filter(s => s.canal.includes('Cash') || s.canal.includes('Black'));
+    let factSales = salesHistory.filter(s => s.canal.includes('Facturé') || s.canal.includes('Facture'));
 
-    report += "\n=== HISTORIQUE DES VENTES ===\n";
-    salesHistory.forEach(s => {
-        report += `${s.date} | ${s.canal} | ${s.type} | ${s.details} | Total: ${s.total}€\n`;
-    });
+    let totalBlack = blackSales.reduce((sum, s) => sum + parseFloat(s.total), 0);
+    let totalFact = factSales.reduce((sum, s) => sum + parseFloat(s.total), 0);
+    let totalGeneral = totalBlack + totalFact;
 
-    navigator.clipboard.writeText(report).then(() => {
-        alert("Bilan copié dans le presse-papier !");
-    });
+    let textBlack = blackSales.length === 0 ? "- Aucune vente" : blackSales.map(s => `- ${s.items} (${s.total} €)`).join("\n");
+    let textFact = factSales.length === 0 ? "- Aucune vente" : factSales.map(s => `- ${s.items} (${s.total} €)`).join("\n");
+
+    let textStock = stock.length === 0 
+        ? "(Catalogue vide)" 
+        : stock.map(s => `- ${s.name} : ${s.stock} restant(s)`).join("\n");
+
+    const reportStr = `📊 BILAN DE STOCK & VENTES :
+
+🔴 VENTES CASH / BLACK :
+${textBlack}
+👉 Total Cash : ${totalBlack.toFixed(2)} €
+
+🔵 VENTES FACTURÉES :
+${textFact}
+👉 Total Facturé : ${totalFact.toFixed(2)} €
+
+💰 TOTAL GÉNÉRAL ENCAISSÉ : ${totalGeneral.toFixed(2)} €
+
+📦 STOCK RESTANT EN CATALOGUE :
+${textStock}`;
+
+    navigator.clipboard.writeText(reportStr);
+    alert("Bilan copié dans le presse-papier !");
 }
 
 function resetAll() {
-    if (confirm("ATTENTION : Cela va supprimer TOUS les produits et TOUTES les ventes ! Continuer ?")) {
-        db.ref().remove();
+    if (confirm("Voulez-vous vraiment TOUT réinitialiser (catalogue et ventes) ?")) {
+        stock = [];
+        salesHistory = [];
+        saveData();
+        renderAll();
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    switchTab('caisse');
+});
