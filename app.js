@@ -1,17 +1,46 @@
-let stock = JSON.parse(localStorage.getItem('cartec_stock')) || [
-    { id: 1, name: "Nettoyant Jantes Cartec", cost: 8.00, pricePart: 18.00, pricePro: 12.00, stock: 10 },
-    { id: 2, name: "Shampoing Carosserie", cost: 6.00, pricePart: 15.00, pricePro: 10.00, stock: 15 }
-];
+// 1. CONFIGURATION FIREBASE
+const firebaseConfig = {
+    apiKey: "AIzaSyBXpSLiJZh39Kdrxxd1a6vH3OkJk-WSt44",
+    authDomain: "cartec-caisse.firebaseapp.com",
+    databaseURL: "https://cartec-caisse-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "cartec-caisse",
+    storageBucket: "cartec-caisse.firebasestorage.app",
+    messagingSenderId: "802357519611",
+    appId: "1:802357519611:web:112d04a074da7e314efc5e"
+};
 
+// Initialisation de Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let stock = [];
+let salesHistory = [];
 let cart = [];
-let salesHistory = JSON.parse(localStorage.getItem('cartec_history')) || [];
 let editingProductId = null;
 
-function saveData() {
-    localStorage.setItem('cartec_stock', JSON.stringify(stock));
-    localStorage.setItem('cartec_history', JSON.stringify(salesHistory));
+// 2. ÉCOUTEURS EN TEMPS RÉEL (SYNCHRONISATION EN DIRECT)
+db.ref('stock').on('value', (snapshot) => {
+    const data = snapshot.val();
+    stock = data ? Object.values(data) : [];
+    renderAll();
+});
+
+db.ref('salesHistory').on('value', (snapshot) => {
+    const data = snapshot.val();
+    salesHistory = data ? Object.values(data) : [];
+    renderAll();
+});
+
+// Envoi des données vers Firebase
+function saveStockToFirebase() {
+    db.ref('stock').set(stock);
 }
 
+function saveHistoryToFirebase() {
+    db.ref('salesHistory').set(salesHistory);
+}
+
+// 3. NAVIGATION PAR ONGLETS
 function switchTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
@@ -140,10 +169,10 @@ function checkout() {
     };
 
     salesHistory.unshift(saleRecord);
-    saveData();
+    saveStockToFirebase();
+    saveHistoryToFirebase();
     clearCart();
-    renderAll();
-    alert("Vente enregistrée avec succès !");
+    alert("Vente enregistrée et synchronisée !");
 }
 
 /* GESTION DU STOCK */
@@ -194,10 +223,7 @@ function editProduct(id) {
     editingProductId = id;
 
     document.getElementById('form-title').innerText = "✏️ Modifier l'article";
-    
-    const submitBtn = document.getElementById('submit-btn');
-    submitBtn.innerText = "Mettre à jour l'article";
-
+    document.getElementById('submit-btn').innerText = "Mettre à jour l'article";
     document.getElementById('cancel-edit-btn').style.display = "inline-flex";
     document.getElementById('add-product-form').scrollIntoView({ behavior: 'smooth' });
 }
@@ -206,10 +232,7 @@ function cancelEdit() {
     editingProductId = null;
     document.getElementById('add-product-form').reset();
     document.getElementById('form-title').innerText = "+ Ajouter un produit";
-    
-    const submitBtn = document.getElementById('submit-btn');
-    submitBtn.innerText = "Mettre à jour l'article";
-
+    document.getElementById('submit-btn').innerText = "Mettre à jour l'article";
     document.getElementById('cancel-edit-btn').style.display = "none";
 }
 
@@ -245,15 +268,13 @@ function handleAddProduct(e) {
         e.target.reset();
     }
 
-    saveData();
-    renderAll();
+    saveStockToFirebase();
 }
 
 function deleteProduct(id) {
     if (confirm("Voulez-vous vraiment supprimer cet article ?")) {
         stock = stock.filter(p => p.id !== id);
-        saveData();
-        renderAll();
+        saveStockToFirebase();
     }
 }
 
@@ -314,8 +335,8 @@ function resetAll() {
     if (confirm("Voulez-vous vraiment TOUT réinitialiser (catalogue et ventes) ?")) {
         stock = [];
         salesHistory = [];
-        saveData();
-        renderAll();
+        saveStockToFirebase();
+        saveHistoryToFirebase();
     }
 }
 
