@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-title" content="Cartec Caisse">
     <meta name="mobile-web-app-capable" content="yes">
 
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=4">
     <style>
         .tab-content { display: none; }
         .tab-content.active { display: block; }
@@ -45,6 +45,16 @@
                         </select>
                     </div>
 
+                    <!-- FILTRES PAR MARQUE ET CATEGORIE -->
+                    <div class="filter-bar">
+                        <select id="filter-brand" onchange="renderProducts()">
+                            <option value="">Toutes les marques</option>
+                        </select>
+                        <select id="filter-category" onchange="renderProducts()">
+                            <option value="">Toutes les catégories</option>
+                        </select>
+                    </div>
+
                     <input type="text" id="search-bar" placeholder="🔍 Rechercher un article..." oninput="renderProducts()">
 
                     <div id="product-grid" class="product-grid"></div>
@@ -69,11 +79,23 @@
         <section id="section-stock" class="tab-content">
             <h2>Inventaire &amp; Ajout Produits</h2>
             <form id="add-product-form" onsubmit="handleAddProduct(event)">
-                <h3 id="form-title">+ Ajouter un produit</h3>
+                <h3 id="form-title">+ Ajouter / Modifier un produit</h3>
                 <div class="form-row">
                     <div class="field-item flex-2">
                         <span class="field-label">Nom du produit</span>
                         <input type="text" id="prod-name" placeholder="Ex: Nettoyant Jantes" required>
+                    </div>
+
+                    <div class="field-item">
+                        <span class="field-label">Marque</span>
+                        <input type="text" id="prod-brand" placeholder="Ex: Cartec, Koch-Chemie" required list="brands-list">
+                        <datalist id="brands-list"></datalist>
+                    </div>
+
+                    <div class="field-item">
+                        <span class="field-label">Catégorie</span>
+                        <input type="text" id="prod-category" placeholder="Ex: Nettoyant, Brosse, Microfibre" required list="categories-list">
+                        <datalist id="categories-list"></datalist>
                     </div>
 
                     <div class="field-item">
@@ -103,7 +125,6 @@
                 </div>
             </form>
 
-            <!-- BARRE DE RECHERCHE DU STOCK -->
             <div class="search-stock-wrapper">
                 <span class="search-icon">🔍</span>
                 <input type="text" id="search-stock-bar" placeholder="Rechercher un produit à modifier ou consulter..." oninput="renderStockTable()">
@@ -112,6 +133,7 @@
             <table class="data-table">
                 <thead>
                     <tr>
+                        <th>Marque / Catégorie</th>
                         <th>Nom du produit</th>
                         <th>Prix Base</th>
                         <th>Prix Part.</th>
@@ -147,10 +169,10 @@
         </section>
     </main>
 
-    <!-- Scripts Firebase pour la synchronisation gratuite -->
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-    <script src="app.js?v=8"></script>
+    <script src="app.js?v=9"></script>
 </body>
 </html>
