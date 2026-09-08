@@ -2,401 +2,923 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caisse & Stock - L'As Du Détail</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>L'As Du Détail - POS</title>
     
-    <!-- SDK Firebase Realtime Database -->
+    <!-- SDK Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
     <style>
         :root {
-            --bg-color: #f4f5f7;
-            --header-bg: #111111;
-            --card-bg: #ffffff;
-            --accent-blue: #007aff;
-            --accent-red: #ff3b30;
-            --border-color: #e5e5ea;
+            --bg-body: #0d0e12;
+            --bg-card: #16181e;
+            --bg-input: #21242d;
+            --accent-blue: #0a84ff;
+            --accent-green: #30d158;
+            --accent-red: #ff453a;
+            --accent-orange: #ff9f0a;
+            --text-main: #ffffff;
+            --text-muted: #8e8e93;
+            --border: #2c2e38;
+            --radius: 14px;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
+            background-color: var(--bg-body);
+            color: var(--text-main);
             margin: 0;
             padding: 0;
-            color: #1c1c1e;
+            -webkit-font-smoothing: antialiased;
         }
 
         header {
-            background-color: var(--header-bg);
-            color: white;
-            padding: 15px 20px;
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .brand-title {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: #fff;
             text-align: center;
         }
-        header h1 { margin: 0 0 15px 0; font-size: 20px; }
-        
+
         .nav-tabs {
             display: flex;
-            justify-content: center;
-            gap: 10px;
+            width: 100%;
+            gap: 6px;
+            background: var(--bg-body);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
         }
+
         .tab-btn {
-            background: #2c2c2e;
-            color: #8e8e93;
+            flex: 1;
+            background: transparent;
+            color: var(--text-muted);
             border: none;
-            padding: 10px 20px;
+            padding: 10px 4px;
             border-radius: 8px;
             font-weight: 600;
+            font-size: 12px;
             cursor: pointer;
+            text-align: center;
         }
+
         .tab-btn.active {
             background: var(--accent-blue);
-            color: white;
+            color: #fff;
         }
 
         .container {
             max-width: 1200px;
-            margin: 20px auto;
-            padding: 0 20px;
+            margin: 15px auto;
+            padding: 0 12px;
         }
 
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 16px;
+            border: 1px solid var(--border);
+            margin-bottom: 15px;
+        }
+
         .caisse-grid {
             display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
+            grid-template-columns: 1fr;
+            gap: 15px;
         }
 
-        .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        @media (min-width: 850px) {
+            header { flex-direction: row; justify-content: space-between; }
+            .nav-tabs { width: auto; }
+            .caisse-grid { grid-template-columns: 1fr 400px; }
         }
 
-        .caisse-controls {
+        .selectors-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
             margin-bottom: 15px;
         }
 
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
         select, input {
             width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-sizing: border-box;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 12px;
+            border-radius: 10px;
             font-size: 14px;
+            outline: none;
+        }
+
+        .search-results {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            max-height: 280px;
+            overflow-y: auto;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .search-row {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .search-row:last-child { border-bottom: none; }
+
+        .folders-container {
+            margin-top: 15px;
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--accent-blue);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .breadcrumb-item {
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .folder-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        @media (min-width: 500px) {
+            .folder-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        .folder-card {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            padding: 16px 10px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-height: 110px;
+            transition: all 0.2s ease;
+        }
+
+        .folder-card:active {
+            border-color: var(--accent-blue);
+            background: rgba(10, 132, 255, 0.1);
+            transform: scale(0.98);
+        }
+
+        .brand-logo-container {
+            width: 100%;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-logo {
+            max-width: 85%;
+            max-height: 42px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+
+        .brand-badge {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--accent-blue);
+        }
+
+        .ticket-list {
+            min-height: 120px;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .ticket-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-input);
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border);
         }
 
         .btn {
             background: var(--accent-blue);
             color: white;
             border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 600;
+            padding: 14px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 15px;
             cursor: pointer;
             width: 100%;
         }
-        .btn-red { background: var(--accent-red); margin-top: 8px; }
 
-        .ticket-items {
-            min-height: 150px;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 15px;
+        .btn-green { background: var(--accent-green); color: #000; }
+        .btn-red { background: var(--accent-red); color: #fff; }
+        .btn-orange { background: var(--accent-orange); color: #000; }
+
+        .btn-del {
+            background: rgba(255, 69, 58, 0.2);
+            color: var(--accent-red);
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            font-weight: bold;
         }
-        .ticket-row {
+
+        .total-display {
+            background: var(--bg-input);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            text-align: right;
+            margin-bottom: 12px;
+        }
+
+        .total-display span {
+            font-size: 26px;
+            font-weight: 900;
+            color: var(--accent-green);
+        }
+
+        .stock-item {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        .total-price {
-            font-size: 22px;
-            font-weight: bold;
-            text-align: right;
-            margin-bottom: 15px;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
         }
 
-        .form-group { margin-bottom: 15px; }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            font-size: 13px;
-            color: #666;
+        .btn-sm {
+            padding: 6px 10px;
+            font-size: 12px;
+            width: auto;
+            border-radius: 6px;
         }
-        .search-item {
-            padding: 10px;
-            border-bottom: 1px solid var(--border-color);
+
+        .history-card {
+            border-bottom: 1px solid var(--border);
+            padding: 12px 0;
             cursor: pointer;
         }
-        .search-item:hover { background-color: #f0f0f5; }
+
+        .history-details {
+            display: none;
+            background: var(--bg-input);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 8px;
+            border: 1px solid var(--border);
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Caisse & Stock - L'As Du Détail</h1>
+        <div class="brand-title">L'AS DU DÉTAIL</div>
         <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchTab('caisse')">Caisse / Vente</button>
-            <button class="tab-btn" onclick="switchTab('stock')">Gestion Stock</button>
-            <button class="tab-btn" onclick="switchTab('historique')">Historique Ventes</button>
+            <button class="tab-btn active" onclick="switchTab('caisse')">Vente</button>
+            <button class="tab-btn" onclick="switchTab('stock')">Stock</button>
+            <button class="tab-btn" onclick="switchTab('historique')">Historique</button>
         </div>
     </header>
 
     <div class="container">
-        
-        <!-- ONGLET 1: CAISSE / VENTE -->
+
+        <!-- ÉCRAN 1 : VENTE / CAISSE -->
         <div id="tab-caisse" class="tab-content active">
             <div class="caisse-grid">
+                
                 <div class="card">
-                    <div class="caisse-controls">
-                        <select id="tarifSelect" onchange="actualiserPanierUI()">
-                            <option value="particulier">Tarif Particulier</option>
-                            <option value="pro">Tarif Professionnel</option>
-                        </select>
-                        <select id="canalSelect">
-                            <option value="atelier">Vente Atelier</option>
-                            <option value="drive">Enlèvement / Drive</option>
-                        </select>
+                    <div class="selectors-grid">
+                        <div class="input-group">
+                            <label>Tarification</label>
+                            <select id="selectTarif" onchange="actualiserPanier(); rechercherProduit(); afficherContenuDossier();">
+                                <option value="particulier">Particulier</option>
+                                <option value="pro">Pro</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Règlement</label>
+                            <select id="selectPaiement">
+                                <option value="Cash">Cash</option>
+                                <option value="Facture">Facture</option>
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <input type="text" id="searchArticle" placeholder="Rechercher un article..." oninput="rechercherArticle()">
-                        <div id="searchResults" style="margin-top: 10px;"></div>
+
+                    <div class="input-group">
+                        <label>Recherche Article</label>
+                        <input type="text" id="searchInput" placeholder="Saisir un nom..." onkeyup="rechercherProduit()">
+                        <div id="searchResults" class="search-results"></div>
+                    </div>
+
+                    <!-- EXPLORATEUR PAR DOSSIERS -->
+                    <div class="folders-container">
+                        <div class="breadcrumb" id="folderBreadcrumb">
+                            <span>Marques</span>
+                        </div>
+                        <div class="folder-grid" id="folderContent"></div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h2>Ticket de caisse</h2>
-                    <div class="ticket-items" id="ticketItems">
-                        <p style="color: #8e8e93; text-align: center;">Panier vide</p>
+                    <h3 style="margin-top:0;">Ticket en cours</h3>
+                    <div class="ticket-list" id="ticketItems">
+                        <p style="color:var(--text-muted); text-align:center;">Panier vide</p>
                     </div>
-                    <div class="total-price">Total : <span id="totalMontant">0.00</span> €</div>
-                    <button class="btn" onclick="validerVente()">Valider la vente</button>
-                    <button class="btn btn-red" onclick="viderPanier()">Vider le panier</button>
+
+                    <div class="total-display">
+                        <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Total TTC</div>
+                        <span id="totalPrix">0.00 €</span>
+                    </div>
+                    <button class="btn btn-green" onclick="validerVente()">VALIDER LA VENTE</button>
+                    <button class="btn btn-red" style="margin-top: 8px; padding: 8px; font-size:12px;" onclick="viderPanier()">Vider Panier</button>
                 </div>
+
             </div>
         </div>
 
-        <!-- ONGLET 2: GESTION STOCK -->
+        <!-- ÉCRAN 2 : GESTION DU STOCK -->
         <div id="tab-stock" class="tab-content">
-            <div class="card" style="max-width: 600px; margin: 0 auto;">
-                <h2>+ Ajouter / Modifier un produit</h2>
-                <form id="formProduit" onsubmit="enregistrerProduit(event)">
-                    <div class="form-group">
-                        <label>NOM DU PRODUIT</label>
-                        <input type="text" id="nomProduit" placeholder="Ex: Green Star 1L" required>
+            <div class="card">
+                <h3 id="formTitle" style="margin-top:0;">+ Nouvel Article</h3>
+                <form id="formArticle" onsubmit="enregistrerProduit(event)">
+                    <input type="hidden" id="editArticleId" value="">
+                    
+                    <div class="selectors-grid">
+                        <div class="input-group">
+                            <label>Marque</label>
+                            <select id="marque" required>
+                                <option value="Cartec">Cartec</option>
+                                <option value="CarPro">CarPro</option>
+                                <option value="Koch-Chemie">Koch-Chemie</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Catégorie</label>
+                            <select id="categorie" required>
+                                <option value="500ml">500 ml</option>
+                                <option value="1L">1 L</option>
+                                <option value="5L">5 L</option>
+                                <option value="10L">10 L</option>
+                                <option value="20L">20 L</option>
+                                <option value="Accessoires">Accessoires</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>MARQUE / GROUPE</label>
-                        <input type="text" id="marqueProduit" placeholder="Ex: Koch-Chemie" required>
+
+                    <div class="input-group" style="margin-bottom:10px;">
+                        <label>Nom du Produit</label>
+                        <input type="text" id="nom" placeholder="ex: Speed Glass Cleaner" required>
                     </div>
-                    <div class="form-group">
-                        <label>CATÉGORIE</label>
-                        <input type="text" id="categorieProduit" placeholder="Ex: Nettoyant Polyvalent" required>
+                    <div class="input-group" style="margin-bottom:10px;">
+                        <label>Quantité Stock</label>
+                        <input type="number" id="stock" value="0" min="0" required>
                     </div>
-                    <div class="form-group">
-                        <label>STOCK DISPONIBLE</label>
-                        <input type="number" id="stockProduit" value="0" min="0" required>
+                    <div class="input-group" style="margin-bottom:10px;">
+                        <label>Prix Achat (€)</label>
+                        <input type="number" step="0.01" id="prixAchat" required>
                     </div>
-                    <div class="form-group">
-                        <label>PRIX ACHAT (€)</label>
-                        <input type="number" step="0.01" id="prixAchat" placeholder="0.00" required>
+                    <div class="input-group" style="margin-bottom:10px;">
+                        <label>Prix Vente Pro (€)</label>
+                        <input type="number" step="0.01" id="prixPro" required>
                     </div>
-                    <div class="form-group">
-                        <label>PRIX PARTICULIER (€)</label>
-                        <input type="number" step="0.01" id="prixParticulier" placeholder="0.00" required>
+                    <div class="input-group" style="margin-bottom:15px;">
+                        <label>Prix Vente Particulier (€)</label>
+                        <input type="number" step="0.01" id="prixParticulier" required>
                     </div>
-                    <div class="form-group">
-                        <label>PRIX PROFESSIONNEL (€)</label>
-                        <input type="number" step="0.01" id="prixPro" placeholder="0.00" required>
-                    </div>
-                    <button type="submit" class="btn" style="background: #ff9500;">+ Enregistrer le produit</button>
+
+                    <button type="submit" class="btn btn-orange" id="btnSubmitForm">Enregistrer l'Article</button>
+                    <button type="button" class="btn" id="btnCancelEdit" style="display:none; margin-top:8px; background:var(--border);" onclick="annulerEdition()">Annuler</button>
                 </form>
             </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="margin:0;">Stock Actuel</h3>
+                    <button class="btn btn-sm btn-red" onclick="viderToutLeStock()">Vider TOUT le Stock</button>
+                </div>
+                <div id="stockList">Chargement...</div>
+            </div>
         </div>
 
-        <!-- ONGLET 3: HISTORIQUE VENTES -->
+        <!-- ÉCRAN 3 : HISTORIQUE & BILAN -->
         <div id="tab-historique" class="tab-content">
             <div class="card">
-                <h2>Historique des Ventes</h2>
-                <div id="historiqueListe">
-                    <p style="color: #8e8e93;">Chargement des ventes...</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 8px; flex-wrap: wrap;">
+                    <h3 style="margin:0;">Historique Ventes</h3>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn btn-sm btn-green" onclick="genererBilan()">Calculer Bilan</button>
+                        <button class="btn btn-sm btn-red" onclick="viderHistoriqueVentes()">Vider Historique</button>
+                    </div>
                 </div>
+
+                <div id="bilanBox" style="display:none; background: rgba(48, 209, 88, 0.1); border:1px solid var(--accent-green); padding:12px; border-radius:8px; margin-bottom:15px;"></div>
+                <div id="historiqueList">Chargement...</div>
             </div>
         </div>
 
     </div>
 
     <script>
-        // CONFIGURATION FIREBASE EXACTE DE VOTRE PROJET
         const firebaseConfig = {
-            apiKey: "AIzaSyBXpSlIjZh39Kdrxxd1a6vH30kJk-WSt44",
-            authDomain: "cartec-caisse.firebaseapp.com",
-            databaseURL: "https://cartec-caisse-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "cartec-caisse",
-            storageBucket: "cartec-caisse.appspot.com",
-            messagingSenderId: "802357519611",
-            appId: "1:802357519611:web:61016c2ccaa629bb4efc5e"
+            apiKey: "AIzaSyB51zcRtDuwW6ammHKU3ATK_ycraDFw194",
+            authDomain: "lasdudetail-caisse.firebaseapp.com",
+            databaseURL: "https://lasdudetail-caisse-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "lasdudetail-caisse",
+            storageBucket: "lasdudetail-caisse.firebasestorage.app",
+            messagingSenderId: "607585857162",
+            appId: "1:607585857162:web:b7b87cee31283311330773"
         };
 
-        // Initialisation Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let produits = [];
+        let articles = [];
         let ventes = [];
         let panier = [];
+        let texteBilanACopier = "";
 
-        // Écoute en temps réel du stock Firebase
+        let marqueSelectionnee = null;
+        let categorieSelectionnee = null;
+
+        // URLs CDN ultra-fiables de Wikimedia
+        const marquesDisponibles = [
+            { 
+                nom: "Cartec", 
+                logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Cartec_logo.svg/512px-Cartec_logo.svg.png", 
+                initiale: "C" 
+            },
+            { 
+                nom: "CarPro", 
+                logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/CarPro_Logo.png/512px-CarPro_Logo.png", 
+                initiale: "CP" 
+            },
+            { 
+                nom: "Koch-Chemie", 
+                logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Koch-Chemie_Logo.svg/512px-Koch-Chemie_Logo.svg.png", 
+                initiale: "KC" 
+            }
+        ];
+
+        const categoriesDisponibles = ["500ml", "1L", "5L", "10L", "20L", "Accessoires"];
+
         db.ref('stock').on('value', snapshot => {
             const data = snapshot.val();
-            produits = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+            articles = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
+            afficherListeStock();
+            afficherContenuDossier();
         });
 
-        // Écoute en temps réel des ventes Firebase
         db.ref('ventes').on('value', snapshot => {
             const data = snapshot.val();
-            ventes = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+            ventes = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
             afficherHistorique();
         });
 
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
             event.target.classList.add('active');
-            document.getElementById('tab-' + tabName).classList.add('active');
+            document.getElementById('tab-' + tab).classList.add('active');
         }
 
-        // Enregistrement d'un produit vers Firebase
-        function enregistrerProduit(e) {
-            e.preventDefault();
-            
-            const prodId = 'PROD_' + Date.now();
-            const nouveauProduit = {
-                nom: document.getElementById('nomProduit').value,
-                marque: document.getElementById('marqueProduit').value,
-                categorie: document.getElementById('categorieProduit').value,
-                stock: parseInt(document.getElementById('stockProduit').value),
-                prixAchat: parseFloat(document.getElementById('prixAchat').value),
-                prixParticulier: parseFloat(document.getElementById('prixParticulier').value),
-                prixPro: parseFloat(document.getElementById('prixPro').value)
-            };
+        /* NAVIGATION DOSSIERS & MARQUES */
+        function afficherContenuDossier() {
+            const grid = document.getElementById('folderContent');
+            const breadcrumb = document.getElementById('folderBreadcrumb');
+            grid.innerHTML = '';
 
-            db.ref('stock/' + prodId).set(nouveauProduit)
-                .then(() => {
-                    document.getElementById('formProduit').reset();
-                    alert('Produit enregistré avec succès et synchronisé !');
-                })
-                .catch(err => alert('Erreur : ' + err.message));
+            // Niveau 1 : Choix de la Marque
+            if (!marqueSelectionnee) {
+                breadcrumb.innerHTML = '<span>Marques</span>';
+                marquesDisponibles.forEach(m => {
+                    grid.innerHTML += `
+                        <div class="folder-card" onclick="choisirMarque('${m.nom}')">
+                            <div class="brand-logo-container">
+                                <img src="${m.logo}" alt="${m.nom}" class="brand-logo" onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\\'brand-badge\\'>${m.initiale}</div>';">
+                            </div>
+                            <span>${m.nom}</span>
+                        </div>
+                    `;
+                });
+                return;
+            }
+
+            // Niveau 2 : Choix de la Catégorie
+            if (marqueSelectionnee && !categorieSelectionnee) {
+                breadcrumb.innerHTML = `
+                    <span class="breadcrumb-item" onclick="reinitialiserDossiers()">Marques</span> / 
+                    <span>${marqueSelectionnee}</span>
+                `;
+                categoriesDisponibles.forEach(cat => {
+                    grid.innerHTML += `
+                        <div class="folder-card" onclick="choisirCategorie('${cat}')">
+                            <span style="font-size:24px;">📁</span>
+                            <span>${cat}</span>
+                        </div>
+                    `;
+                });
+                return;
+            }
+
+            // Niveau 3 : Liste des produits
+            if (marqueSelectionnee && categorieSelectionnee) {
+                breadcrumb.innerHTML = `
+                    <span class="breadcrumb-item" onclick="reinitialiserDossiers()">Marques</span> / 
+                    <span class="breadcrumb-item" onclick="choisirMarque('${marqueSelectionnee}')">${marqueSelectionnee}</span> / 
+                    <span>${categorieSelectionnee}</span>
+                `;
+
+                const produitsFiltres = articles.filter(a => 
+                    a.marque === marqueSelectionnee && a.categorie === categorieSelectionnee
+                );
+
+                if (produitsFiltres.length === 0) {
+                    grid.innerHTML = '<p style="grid-column:1/-1; color:var(--text-muted); text-align:center; padding:15px; margin:0;">Aucun produit dans cette catégorie</p>';
+                    return;
+                }
+
+                const tarif = document.getElementById('selectTarif').value;
+                produitsFiltres.forEach(a => {
+                    const px = tarif === 'pro' ? a.prixPro : a.prixParticulier;
+                    const card = document.createElement('div');
+                    card.className = 'folder-card';
+                    card.style.borderColor = 'var(--accent-blue)';
+                    card.innerHTML = `
+                        <span style="font-size:13px; font-weight:700;">${a.nom}</span>
+                        <small style="color:var(--text-muted);">Stock: ${a.stock}</small>
+                        <strong style="color:var(--accent-green); margin-top:2px;">${px.toFixed(2)} €</strong>
+                    `;
+                    card.onclick = () => ajouterAuPanier(a);
+                    grid.appendChild(card);
+                });
+            }
         }
 
-        // Recherche d'article
-        function rechercherArticle() {
-            const query = document.getElementById('searchArticle').value.toLowerCase();
-            const resultsContainer = document.getElementById('searchResults');
-            resultsContainer.innerHTML = '';
+        function choisirMarque(m) {
+            marqueSelectionnee = m;
+            categorieSelectionnee = null;
+            afficherContenuDossier();
+        }
 
-            if (query.trim() === '') return;
+        function choisirCategorie(cat) {
+            categorieSelectionnee = cat;
+            afficherContenuDossier();
+        }
 
-            const matches = produits.filter(p => 
-                (p.nom && p.nom.toLowerCase().includes(query)) || 
-                (p.marque && p.marque.toLowerCase().includes(query))
-            );
+        function reinitialiserDossiers() {
+            marqueSelectionnee = null;
+            categorieSelectionnee = null;
+            afficherContenuDossier();
+        }
 
-            matches.forEach(p => {
-                const item = document.createElement('div');
-                item.className = 'search-item';
-                item.innerHTML = `<strong>${p.nom}</strong> (${p.marque}) - Stock: <strong>${p.stock}</strong>`;
-                item.onclick = () => ajouterAuPanier(p);
-                resultsContainer.appendChild(item);
+        /* RECHERCHE MANUELLE */
+        function rechercherProduit() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const resBox = document.getElementById('searchResults');
+            resBox.innerHTML = '';
+
+            if (query === '') {
+                resBox.style.display = 'none';
+                return;
+            }
+
+            const matches = articles.filter(a => a.nom.toLowerCase().includes(query));
+
+            if(matches.length === 0) {
+                resBox.style.display = 'block';
+                resBox.innerHTML = '<p style="padding:10px; color:var(--text-muted); text-align:center; margin:0;">Aucun article trouvé</p>';
+                return;
+            }
+
+            resBox.style.display = 'block';
+            const tarif = document.getElementById('selectTarif').value;
+
+            matches.forEach(a => {
+                const px = tarif === 'pro' ? a.prixPro : a.prixParticulier;
+                const row = document.createElement('div');
+                row.className = 'search-row';
+                row.innerHTML = `
+                    <span><strong>${a.nom}</strong> <small style="color:var(--text-muted);">(${a.marque || ''} - ${a.stock})</small></span>
+                    <strong style="color:var(--accent-blue);">${px.toFixed(2)} €</strong>
+                `;
+                row.onclick = () => {
+                    ajouterAuPanier(a);
+                    document.getElementById('searchInput').value = '';
+                    resBox.style.display = 'none';
+                };
+                resBox.appendChild(row);
             });
         }
 
-        function ajouterAuPanier(produit) {
-            const ex = panier.find(item => item.id === produit.id);
-            if (ex) {
-                if (ex.qte < produit.stock) ex.qte++;
-                else alert('Stock insuffisant !');
+        function ajouterAuPanier(art) {
+            const ex = panier.find(p => p.id === art.id);
+            if(ex) {
+                if(ex.qte < art.stock) ex.qte++;
+                else alert("Stock max atteint !");
             } else {
-                if (produit.stock > 0) panier.push({ ...produit, qte: 1 });
-                else alert('Produit en rupture de stock !');
+                if(art.stock > 0) panier.push({ ...art, qte: 1 });
+                else alert("Rupture de stock !");
             }
-            actualiserPanierUI();
+            actualiserPanier();
         }
 
-        function actualiserPanierUI() {
-            const typeTarif = document.getElementById('tarifSelect').value;
+        function actualiserPanier() {
+            const tarif = document.getElementById('selectTarif').value;
             const container = document.getElementById('ticketItems');
             container.innerHTML = '';
             let total = 0;
 
-            panier.forEach(item => {
-                const prix = typeTarif === 'pro' ? item.prixPro : item.prixParticulier;
-                const ligneTotal = prix * item.qte;
-                total += ligneTotal;
+            if(panier.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-muted); text-align:center;">Panier vide</p>';
+                document.getElementById('totalPrix').innerText = '0.00 €';
+                return;
+            }
+
+            panier.forEach((item, index) => {
+                const px = tarif === 'pro' ? item.prixPro : item.prixParticulier;
+                const sousTotal = px * item.qte;
+                total += sousTotal;
 
                 container.innerHTML += `
-                    <div class="ticket-row">
-                        <span>${item.nom} (x${item.qte})</span>
-                        <span>${ligneTotal.toFixed(2)} €</span>
+                    <div class="ticket-item">
+                        <div>
+                            <strong style="font-size:13px;">${item.nom}</strong><br>
+                            <small style="color:var(--text-muted);">${px.toFixed(2)} € x ${item.qte}</small>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <strong>${sousTotal.toFixed(2)} €</strong>
+                            <button class="btn-del" onclick="retirerDuPanier(${index})">✕</button>
+                        </div>
                     </div>
                 `;
             });
 
-            document.getElementById('totalMontant').innerText = total.toFixed(2);
+            document.getElementById('totalPrix').innerText = total.toFixed(2) + ' €';
+        }
+
+        function retirerDuPanier(index) {
+            panier.splice(index, 1);
+            actualiserPanier();
         }
 
         function viderPanier() {
             panier = [];
-            actualiserPanierUI();
+            actualiserPanier();
         }
 
-        // Validation de la vente avec déduction automatique du stock en temps réel
         function validerVente() {
-            if (panier.length === 0) return alert('Le panier est vide.');
+            if(panier.length === 0) return alert("Le panier est vide.");
 
-            const typeTarif = document.getElementById('tarifSelect').value;
-            let totalVente = 0;
+            const tarif = document.getElementById('selectTarif').value;
+            const paiement = document.getElementById('selectPaiement').value;
+            let total = 0;
 
             panier.forEach(item => {
                 const nouveauStock = item.stock - item.qte;
                 db.ref('stock/' + item.id + '/stock').set(nouveauStock);
-                totalVente += (typeTarif === 'pro' ? item.prixPro : item.prixParticulier) * item.qte;
+                const px = tarif === 'pro' ? item.prixPro : item.prixParticulier;
+                total += px * item.qte;
             });
 
             const venteId = 'VENTE_' + Date.now();
             db.ref('ventes/' + venteId).set({
                 date: new Date().toLocaleString(),
-                total: totalVente,
+                typeClient: tarif,
+                modePaiement: paiement,
+                total: total,
                 articles: panier
             }).then(() => {
                 viderPanier();
-                document.getElementById('searchArticle').value = '';
-                document.getElementById('searchResults').innerHTML = '';
-                alert('Vente validée et stock mis à jour sur tous vos appareils !');
+                alert("Vente enregistrée !");
             });
         }
 
-        function afficherHistorique() {
-            const container = document.getElementById('historiqueListe');
-            if (ventes.length === 0) {
-                container.innerHTML = '<p style="color: #8e8e93;">Aucune vente enregistrée.</p>';
+        /* GESTION STOCK */
+        function enregistrerProduit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editArticleId').value;
+
+            const articleData = {
+                marque: document.getElementById('marque').value,
+                categorie: document.getElementById('categorie').value,
+                nom: document.getElementById('nom').value,
+                stock: parseInt(document.getElementById('stock').value),
+                prixAchat: parseFloat(document.getElementById('prixAchat').value),
+                prixPro: parseFloat(document.getElementById('prixPro').value),
+                prixParticulier: parseFloat(document.getElementById('prixParticulier').value)
+            };
+
+            if(editId) {
+                db.ref('stock/' + editId).update(articleData).then(() => {
+                    alert("Modifié !");
+                    annulerEdition();
+                });
+            } else {
+                const newId = 'PROD_' + Date.now();
+                db.ref('stock/' + newId).set(articleData).then(() => {
+                    alert("Créé !");
+                    document.getElementById('formArticle').reset();
+                });
+            }
+        }
+
+        function afficherListeStock() {
+            const container = document.getElementById('stockList');
+            if(articles.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-muted);">Stock vide.</p>';
                 return;
             }
 
-            container.innerHTML = ventes.map(v => `
-                <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
-                    <strong>Vente du ${v.date}</strong><br>
-                    Total : <strong>${v.total ? v.total.toFixed(2) : 0} €</strong>
+            container.innerHTML = articles.map(a => `
+                <div class="stock-item">
+                    <div>
+                        <strong>${a.nom}</strong> <small style="color:var(--accent-blue);">[${a.marque || 'N/A'} - ${a.categorie || 'N/A'}]</small><br>
+                        <small style="color:var(--text-muted);">Stock: ${a.stock} | Achat: ${a.prixAchat}€ | Pro: ${a.prixPro}€ | Part: ${a.prixParticulier}€</small>
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn btn-sm btn-orange" onclick="editerArticle('${a.id}')">Modif</button>
+                        <button class="btn btn-sm btn-red" onclick="supprimerArticle('${a.id}')">Suppr</button>
+                    </div>
                 </div>
             `).join('');
+        }
+
+        function editerArticle(id) {
+            const a = articles.find(item => item.id === id);
+            if(!a) return;
+
+            document.getElementById('editArticleId').value = a.id;
+            document.getElementById('marque').value = a.marque || 'Cartec';
+            document.getElementById('categorie').value = a.categorie || '500ml';
+            document.getElementById('nom').value = a.nom;
+            document.getElementById('stock').value = a.stock;
+            document.getElementById('prixAchat').value = a.prixAchat;
+            document.getElementById('prixPro').value = a.prixPro;
+            document.getElementById('prixParticulier').value = a.prixParticulier;
+
+            document.getElementById('formTitle').innerText = "Modifier l'article";
+            document.getElementById('btnSubmitForm').innerText = "Mettre à jour";
+            document.getElementById('btnCancelEdit').style.display = "block";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function annulerEdition() {
+            document.getElementById('editArticleId').value = '';
+            document.getElementById('formArticle').reset();
+            document.getElementById('formTitle').innerText = "+ Nouvel Article";
+            document.getElementById('btnSubmitForm').innerText = "Enregistrer l'Article";
+            document.getElementById('btnCancelEdit').style.display = "none";
+        }
+
+        function supprimerArticle(id) {
+            if(confirm("Supprimer cet article ?")) {
+                db.ref('stock/' + id).remove();
+            }
+        }
+
+        function viderToutLeStock() {
+            if(confirm("⚠️ Supprimer TOUT le stock ?")) {
+                db.ref('stock').remove().then(() => alert("Stock réinitialisé !"));
+            }
+        }
+
+        /* HISTORIQUE ET BILAN */
+        function afficherHistorique() {
+            const container = document.getElementById('historiqueList');
+            if(ventes.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-muted);">Aucune vente.</p>';
+                return;
+            }
+
+            container.innerHTML = ventes.slice().reverse().map((v, i) => {
+                const artsList = (v.articles || []).map(a => `• ${a.nom} x${a.qte}`).join('<br>');
+                return `
+                    <div class="history-card" onclick="toggleDetails(${i})">
+                        <small style="color:var(--text-muted);">${v.date}</small><br>
+                        <strong>Mode: ${v.modePaiement}</strong> (${v.typeClient}) - Total : <strong style="color:var(--accent-green);">${v.total ? v.total.toFixed(2) : '0.00'} €</strong>
+                        <div id="details-${i}" class="history-details">
+                            <small style="color:var(--text-muted); display:block; margin-bottom:4px;">Articles vendus :</small>
+                            ${artsList || 'Aucun détail'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleDetails(index) {
+            const el = document.getElementById(`details-${index}`);
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function genererBilan() {
+            let totalCash = 0;
+            let totalFacture = 0;
+            let detailsVentesText = "";
+
+            ventes.forEach(v => {
+                if(v.modePaiement === 'Cash') totalCash += (v.total || 0);
+                else if(v.modePaiement === 'Facture') totalFacture += (v.total || 0);
+
+                const arts = (v.articles || []).map(a => `${a.nom} (x${a.qte})`).join(', ');
+                detailsVentesText += `${v.date} | ${v.modePaiement} (${v.typeClient}) | ${v.total.toFixed(2)}€ | ${arts}\n`;
+            });
+
+            const totalGen = totalCash + totalFacture;
+
+            texteBilanACopier = `BILAN DES VENTESTotal Cash : ${totalCash.toFixed(2)} €\nTotal Facture : ${totalFacture.toFixed(2)} €\nTOTAL GÉNÉRAL : ${totalGen.toFixed(2)} €\n\nDÉTAIL DES TRANSACTIONS :\n${detailsVentesText}`;
+
+            const box = document.getElementById('bilanBox');
+            box.style.display = 'block';
+            box.innerHTML = `
+                <strong style="color:var(--accent-green);">Bilan Ventes :</strong><br>
+                Cash : <strong>${totalCash.toFixed(2)} €</strong><br>
+                Facture : <strong>${totalFacture.toFixed(2)} €</strong><br>
+                <hr style="border:0; border-top:1px solid var(--border); margin:6px 0;">
+                Total : <strong>${totalGen.toFixed(2)} €</strong>
+                <button class="btn btn-sm" style="margin-top:10px; background:var(--accent-blue);" onclick="copierBilan()">Copier le bilan complet</button>
+            `;
+        }
+
+        function copierBilan() {
+            navigator.clipboard.writeText(texteBilanACopier).then(() => {
+                alert("Bilan copié dans le presse-papier ! Tu peux le coller dans ton tableau.");
+            });
+        }
+
+        function viderHistoriqueVentes() {
+            if(confirm("⚠️ Es-tu sûr de vouloir vider tout l'historique des ventes ? Le stock ne sera pas touché.")) {
+                db.ref('ventes').remove().then(() => {
+                    document.getElementById('bilanBox').style.display = 'none';
+                    alert("Historique des ventes réinitialisé !");
+                });
+            }
         }
     </script>
 </body>
